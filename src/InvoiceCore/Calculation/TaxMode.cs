@@ -1,7 +1,7 @@
 namespace InvoiceCore;
 
 /// <summary>Whether line-item prices already include tax or have it added on top.</summary>
-internal enum TaxMode
+public enum TaxMode
 {
     /// <summary>Tax is added to the net subtotal.</summary>
     Exclusive = 0,

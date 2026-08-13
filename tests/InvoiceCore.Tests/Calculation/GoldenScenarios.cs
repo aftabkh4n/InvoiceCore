@@ -518,6 +518,32 @@ internal static class GoldenScenarios
         0.333m, 0.000m, 0.000m, 0.333m,
         []);
 
+    // S33: JPY excl, qty 1 @ 1001, invoice discount 50%, no tax
+    // DiscountAmount=Round(1001*0.50,0)=Round(500.5,0)=501 [midpoint → AwayFromZero up]
+    // ToEven gives 500 (500 is even) — different result; catches M6 for 0dp
+    private static readonly GoldenScenario S33 = new(
+        "JPY Excl invoice-discount midpoint (500.5 → 501 AwayFromZero)",
+        "JPY", TaxMode.Exclusive,
+        [L(1, 1001m)],
+        [],
+        50m,
+        [1001m],
+        1001m, 501m, 0m, 500m,
+        []);
+
+    // S34: KWD excl, qty 1 @ 100.010, invoice discount 5%, no tax
+    // DiscountAmount=Round(100.010*0.05,3)=Round(5.0005,3)=5.001 [midpoint → AwayFromZero up]
+    // ToEven gives 5.000 (0 in position 3 is even) — different result; catches M6 for 3dp
+    private static readonly GoldenScenario S34 = new(
+        "KWD Excl invoice-discount midpoint (5.0005 → 5.001 AwayFromZero)",
+        "KWD", TaxMode.Exclusive,
+        [L(1, 100.010m)],
+        [],
+        5m,
+        [100.010m],
+        100.010m, 5.001m, 0.000m, 95.009m,
+        []);
+
     // -----------------------------------------------------------------------
     // Public access for [MemberData]
     // -----------------------------------------------------------------------
@@ -527,6 +553,6 @@ internal static class GoldenScenarios
             S01, S02, S03, S04, S05, S06, S07, S08, S09, S10,
             S11, S12, S13, S14, S15, S16, S17, S18, S19, S20,
             S21, S22, S23, S24, S25, S26, S27, S28, S29, S30,
-            S31, S32,
+            S31, S32, S33, S34,
         }.Select(s => new object[] { s });
 }
