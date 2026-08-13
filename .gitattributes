@@ -1,0 +1,19 @@
+# Normalize line endings to LF in the repository; let git convert on checkout.
+* text=auto eol=lf
+
+# Windows-only script files must keep CRLF on all platforms.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+# .NET solution files opened by Visual Studio expect CRLF.
+*.sln text eol=crlf
+*.slnx text eol=crlf
+
+# True binary — never touch line endings.
+*.dll binary
+*.exe binary
+*.pdb binary
+*.nupkg binary
+*.snupkg binary
+*.png binary
+*.jpg binary
+*.ico binary
