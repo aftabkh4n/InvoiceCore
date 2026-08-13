@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    name: Build & Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # full history for SourceLink
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release --collect:"XPlat Code Coverage" --results-directory TestResults
+
+      - name: Pack
+        run: dotnet pack src/InvoiceCore/InvoiceCore.csproj --no-build -c Release -o artifacts
+
+      - name: Check nupkg size (must be ≤ 200 KB)
+        shell: bash
+        run: |
+          pkg=$(ls artifacts/*.nupkg | grep -v '\.symbols\.' | head -1)
+          size=$(wc -c < "$pkg")
+          echo "Package: $pkg"
+          echo "Size: $size bytes (limit 204800)"
+          if [ "$size" -gt 204800 ]; then
+            echo "ERROR: nupkg exceeds 200 KB — something heavy leaked in."
+            exit 1
+          fi
+
+      - name: Upload nupkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: nupkg-${{ matrix.os }}
+          path: artifacts/

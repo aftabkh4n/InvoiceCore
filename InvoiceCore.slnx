@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/samples/">
+    <Project Path="samples/InvoiceCore.Sample.Console/InvoiceCore.Sample.Console.csproj" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/InvoiceCore/InvoiceCore.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/InvoiceCore.Tests/InvoiceCore.Tests.csproj" />
+  </Folder>
+</Solution>
