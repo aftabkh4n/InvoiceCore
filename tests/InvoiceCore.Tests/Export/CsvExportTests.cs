@@ -65,6 +65,8 @@ public sealed class CsvExportTests
     }
 
     // Decimal values use invariant culture (period as decimal separator, no thousands).
+    // Uses fractional values (UnitPrice=10.50) so comma-decimal cultures produce a
+    // detectable difference — whole-number totals are identical in all cultures.
     [Theory]
     [InlineData("de-DE")]
     [InlineData("tr-TR")]
@@ -74,10 +76,17 @@ public sealed class CsvExportTests
         try
         {
             CultureInfo.CurrentCulture = new CultureInfo(cultureName);
-            var csv = Svc().ExportToCsv([SimpleInvoice()]);
-            // Subtotal=100, TaxAmount=20, Total=120 — must have period-separated decimals
-            (csv.Contains(",100,") || csv.Contains(",100\r\n")).Should().BeTrue();
-            csv.Should().NotContain("100,00");   // German format with comma separator
+            // UnitPrice=10.50 → Subtotal=10.5, TaxAmount=2.1, Total=12.6 (fractional, differs de-DE/tr-TR)
+            var inv = new Invoice(
+                [new LineItem { Description = "X", Quantity = 1m, UnitPrice = 10.50m }],
+                [new TaxRate { Name = "VAT", Percentage = 20m }],
+                "INV-CUL",
+                new DateOnly(2025, 1, 15),
+                new DateOnly(2025, 2, 15),
+                new CustomerInfo { Name = "Acme" });
+            var csv = Svc().ExportToCsv([inv]);
+            csv.Should().Contain("10.5");    // invariant decimal separator
+            csv.Should().NotContain("10,5"); // comma-decimal (de-DE/tr-TR)
         }
         finally
         {
