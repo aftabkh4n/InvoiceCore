@@ -1,3 +1,10 @@
+## Sensitive / local-only files
+SPEC.md
+CLAUDE.md
+.claude/
+.env
+secrets.json
+
 ## .NET / Visual Studio
 *.user
 *.suo
