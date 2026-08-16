@@ -1,0 +1,64 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Pack & Publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            8.0.x
+            9.0.x
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore -c Release
+
+      - name: Test
+        run: dotnet test --no-build -c Release
+
+      - name: Pack
+        run: dotnet pack src/InvoiceCore/InvoiceCore.csproj --no-build -c Release -o artifacts
+
+      - name: Check nupkg size (must be ≤ 200 KB)
+        run: |
+          pkg=$(ls artifacts/*.nupkg | grep -v '\.symbols\.' | head -1)
+          size=$(wc -c < "$pkg")
+          echo "Package: $pkg"
+          echo "Size: $size bytes (limit 204800)"
+          if [ "$size" -gt 204800 ]; then
+            echo "ERROR: nupkg exceeds 200 KB — something heavy leaked in."
+            exit 1
+          fi
+
+      - name: Push to NuGet
+        run: >
+          dotnet nuget push artifacts/*.nupkg
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
+
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          generate_release_notes: true
