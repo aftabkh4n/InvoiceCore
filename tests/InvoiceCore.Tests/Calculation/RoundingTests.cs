@@ -9,7 +9,7 @@ namespace InvoiceCore.Tests.Calculation;
 public sealed class RoundingTests
 {
     // -----------------------------------------------------------------------
-    // Money.Round — direct midpoint tests
+    // Money.Round: direct midpoint tests
     // -----------------------------------------------------------------------
 
     [Fact]
@@ -43,7 +43,7 @@ public sealed class RoundingTests
     }
 
     // -----------------------------------------------------------------------
-    // Money.GetDecimals — currency precision table
+    // Money.GetDecimals: currency precision table
     // -----------------------------------------------------------------------
 
     [Theory]
@@ -68,7 +68,7 @@ public sealed class RoundingTests
     }
 
     // -----------------------------------------------------------------------
-    // InvoiceCalculator — calculation-level rounding edge cases
+    // InvoiceCalculator: calculation-level rounding edge cases
     // -----------------------------------------------------------------------
 
     [Fact]

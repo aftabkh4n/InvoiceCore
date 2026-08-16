@@ -12,7 +12,7 @@ internal static class InvoiceCalculator
     {
         var p = Money.GetDecimals(input.CurrencyCode);
 
-        // Step 1 — line totals (identical in both tax modes).
+        // Step 1: line totals (identical in both tax modes).
         //   lineGross_i    = Quantity_i * UnitPrice_i
         //   lineDiscount_i = Round(lineGross_i * LineDiscountPercent_i / 100, p)
         //   lineTotal_i    = Round(lineGross_i, p) - lineDiscount_i
@@ -27,7 +27,7 @@ internal static class InvoiceCalculator
 
         var rawSubtotal = lineTotals.Sum();
 
-        // Step 2 — normalise to a tax-exclusive base.
+        // Step 2: normalise to a tax-exclusive base.
         //   Exclusive: Subtotal = rawSubtotal
         //   Inclusive: Subtotal = Round(rawSubtotal / (1 + R), p)
         //              where R = sum of all rate percentages / 100
@@ -36,11 +36,11 @@ internal static class InvoiceCalculator
             ? Money.Round(rawSubtotal / (1m + R), p)
             : rawSubtotal;
 
-        // Step 3 — invoice-level discount applied to the net subtotal.
+        // Step 3: invoice-level discount applied to the net subtotal.
         var discountAmount = Money.Round(subtotal * input.DiscountPercent / 100m, p);
         var taxableBase = subtotal - discountAmount;
 
-        // Step 4 — per-rate tax amounts, additive (never compounded).
+        // Step 4: per-rate tax amounts, additive (never compounded).
         //   taxAmount_j = Round(taxableBase * Percentage_j / 100, p)
         var breakdown = input.TaxRates
             .Select(r => new TaxLineResult(
@@ -51,7 +51,7 @@ internal static class InvoiceCalculator
 
         var taxAmount = breakdown.Sum(t => t.Amount);
 
-        // Step 4.4 — inclusive-mode reconciliation.
+        // Step 4.4: inclusive-mode reconciliation.
         //   When TaxMode == Inclusive and DiscountPercent == 0, the customer expects
         //   Total == rawSubtotal exactly. Rounding residuals from the division in
         //   step 2 and the per-rate rounding in step 4 can leave a one-minor-unit gap.
@@ -71,7 +71,7 @@ internal static class InvoiceCalculator
             }
         }
 
-        // Step 5 — final total.
+        // Step 5: final total.
         var total = taxableBase + taxAmount;
 
         return new CalculationResult(

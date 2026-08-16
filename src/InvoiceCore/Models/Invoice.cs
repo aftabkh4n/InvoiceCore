@@ -20,7 +20,7 @@ public sealed class Invoice
     /// <param name="customer">Recipient details.</param>
     /// <param name="currencyCode">ISO-4217 currency code. Defaults to <c>"USD"</c>.</param>
     /// <param name="taxMode">Whether prices are tax-exclusive or tax-inclusive. Defaults to <see cref="TaxMode.Exclusive"/>.</param>
-    /// <param name="discountPercent">Invoice-level discount percentage (0–100). Defaults to 0.</param>
+    /// <param name="discountPercent">Invoice-level discount percentage (0-100). Defaults to 0.</param>
     /// <param name="notes">Optional free-text notes.</param>
     /// <param name="id">Invoice identifier. A new <see cref="Guid"/> is generated when omitted.</param>
     /// <param name="baseCurrencyCode">Optional reporting currency code for exchange-rate conversion.</param>
@@ -114,7 +114,7 @@ public sealed class Invoice
     /// <summary>Tax rates applied at invoice level.</summary>
     public IReadOnlyList<TaxRate> TaxRates { get; }
 
-    /// <summary>Invoice-level discount percentage (0–100).</summary>
+    /// <summary>Invoice-level discount percentage (0-100).</summary>
     public decimal DiscountPercent { get; }
 
     /// <summary>Optional free-text notes.</summary>
@@ -125,7 +125,7 @@ public sealed class Invoice
 
     /// <summary>
     /// Units of <see cref="BaseCurrencyCode"/> per one unit of <see cref="CurrencyCode"/>.
-    /// Stored but never applied — currency conversion is out of scope for v1.
+    /// Stored but never applied; currency conversion is out of scope for v1.
     /// </summary>
     public decimal? ExchangeRate { get; }
 

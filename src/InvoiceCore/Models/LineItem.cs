@@ -12,7 +12,7 @@ public sealed class LineItem
     /// <summary>Price per unit before discount.</summary>
     public required decimal UnitPrice { get; init; }
 
-    /// <summary>Optional per-line discount as a percentage (0–100).</summary>
+    /// <summary>Optional per-line discount as a percentage (0-100).</summary>
     public decimal DiscountPercent { get; init; }
 
     /// <summary>

@@ -26,7 +26,7 @@ internal sealed record GoldenScenario(
 internal static class GoldenScenarios
 {
     // -----------------------------------------------------------------------
-    // Helpers — reduce verbosity
+    // Helpers: reduce verbosity
     // -----------------------------------------------------------------------
     private static (decimal, decimal, decimal) L(decimal qty, decimal price, decimal disc = 0m)
         => (qty, price, disc);
@@ -34,7 +34,7 @@ internal static class GoldenScenarios
     private static TaxExpectation T(string name, decimal pct, decimal amt) => new(name, pct, amt);
 
     // -----------------------------------------------------------------------
-    // USD (p=2) — Exclusive mode
+    // USD (p=2): Exclusive mode
     // -----------------------------------------------------------------------
 
     // S01: single line, single rate, no discounts
@@ -133,10 +133,10 @@ internal static class GoldenScenarios
         [T("GST", 10m, 8.10m), T("PST", 5m, 4.05m)]);
 
     // -----------------------------------------------------------------------
-    // USD (p=2) — Inclusive mode
+    // USD (p=2): Inclusive mode
     // -----------------------------------------------------------------------
 
-    // S08: inclusive 20%, price already includes tax (exact division — no residual)
+    // S08: inclusive 20%, price already includes tax (exact division, no residual)
     // lineTotal=120, rawSubtotal=120, R=0.20
     // Subtotal=Round(120/1.20,2)=Round(100.00,2)=100
     // Tax=Round(100*0.20,2)=20 → residual=120-(100+20)=0 → Total=120
@@ -150,7 +150,7 @@ internal static class GoldenScenarios
         100.00m, 0.00m, 20.00m, 120.00m,
         [T("VAT", 20m, 20.00m)]);
 
-    // S09: inclusive 20%, price=100 (non-divisible — verify no residual here)
+    // S09: inclusive 20%, price=100 (non-divisible; verify no residual here)
     // Subtotal=Round(100/1.20,2)=Round(83.3333..,2)=83.33
     // Tax=Round(83.33*0.20,2)=Round(16.666,2)=16.67
     // residual=100-(83.33+16.67)=0 → Total=100
@@ -197,7 +197,7 @@ internal static class GoldenScenarios
         [T("VAT", 20m, 18.00m)]);
 
     // -----------------------------------------------------------------------
-    // USD — Zero / empty tax
+    // USD: zero / empty tax
     // -----------------------------------------------------------------------
 
     // S12: 0% tax rate (still in breakdown, amount zero)
@@ -224,7 +224,7 @@ internal static class GoldenScenarios
         []);
 
     // -----------------------------------------------------------------------
-    // USD — Multi-line
+    // USD: multi-line
     // -----------------------------------------------------------------------
 
     // S14: two lines, 20% VAT, no discounts
@@ -271,7 +271,7 @@ internal static class GoldenScenarios
         [T("VAT", 10m, 7.60m), T("ST", 5m, 3.80m)]);
 
     // -----------------------------------------------------------------------
-    // JPY (p=0) — Exclusive
+    // JPY (p=0): Exclusive
     // -----------------------------------------------------------------------
 
     // S17: JPY clean round, 10% CT
@@ -286,7 +286,7 @@ internal static class GoldenScenarios
         1000m, 0m, 100m, 1100m,
         [T("CT", 10m, 100m)]);
 
-    // S18: JPY midpoint — 99.5 must round to 100 (AwayFromZero), not 99 (banker's)
+    // S18: JPY midpoint: 99.5 must round to 100 (AwayFromZero), not 99 (banker's)
     // lineTotal=995, Tax=Round(995*0.10,0)=Round(99.5,0)=100 → Total=1095
     private static readonly GoldenScenario S18 = new(
         "JPY Excl 10% midpoint AwayFromZero (99.5 → 100, not 99)",
@@ -299,7 +299,7 @@ internal static class GoldenScenarios
         [T("CT", 10m, 100m)]);
 
     // -----------------------------------------------------------------------
-    // JPY (p=0) — Inclusive
+    // JPY (p=0): Inclusive
     // -----------------------------------------------------------------------
 
     // S19: JPY inclusive 10%, exact division
@@ -334,7 +334,7 @@ internal static class GoldenScenarios
         [T("Tax_A", 5m, 46m), T("Tax_B", 5m, 45m)]);
 
     // -----------------------------------------------------------------------
-    // KWD (p=3) — Exclusive
+    // KWD (p=3): Exclusive
     // -----------------------------------------------------------------------
 
     // S21: KWD clean, 5% VAT
@@ -381,7 +381,7 @@ internal static class GoldenScenarios
         [T("VAT", 5m, 4.500m), T("ST", 3m, 2.700m)]);
 
     // -----------------------------------------------------------------------
-    // KWD (p=3) — Inclusive
+    // KWD (p=3): Inclusive
     // -----------------------------------------------------------------------
 
     // S24: KWD inclusive 5%+5%, negative reconciliation (−0.001)
@@ -418,7 +418,7 @@ internal static class GoldenScenarios
         [T("VAT", 10m, 8.55m), T("ST", 7m, 5.98m)]);
 
     // -----------------------------------------------------------------------
-    // Midpoint rounding — AwayFromZero vs ToEven distinguishers
+    // Midpoint rounding: AwayFromZero vs ToEven distinguishers
     // Each of S26-S30 contains a midpoint value that produces a different
     // result under banker's rounding.  S31-S32 test sub-precision line gross.
     // -----------------------------------------------------------------------
@@ -426,7 +426,7 @@ internal static class GoldenScenarios
     // S26: USD excl, VAT 5% on 100.10
     // lineTotal=100.10, taxableBase=100.10
     // Tax=Round(100.10*0.05,2)=Round(5.005,2)=5.01  [midpoint → AwayFromZero up]
-    // ToEven gives 5.00 (0 is even) — different result
+    // ToEven gives 5.00 (0 is even); different result
     private static readonly GoldenScenario S26 = new(
         "USD Excl 5% tax midpoint (5.005 → 5.01 AwayFromZero)",
         "USD", TaxMode.Exclusive,
@@ -439,7 +439,7 @@ internal static class GoldenScenarios
 
     // S27: JPY excl, 10% on 1005
     // lineTotal=1005, Tax=Round(1005*0.10,0)=Round(100.5,0)=101  [midpoint → AwayFromZero up]
-    // ToEven gives 100 (0 is even) — different result
+    // ToEven gives 100 (0 is even); different result
     private static readonly GoldenScenario S27 = new(
         "JPY Excl 10% tax midpoint (100.5 → 101 AwayFromZero)",
         "JPY", TaxMode.Exclusive,
@@ -452,7 +452,7 @@ internal static class GoldenScenarios
 
     // S28: KWD excl, 5% on 10.010
     // Tax=Round(10.010*0.05,3)=Round(0.5005,3)=0.501  [midpoint → AwayFromZero up]
-    // ToEven gives 0.500 (0 is even) — different result
+    // ToEven gives 0.500 (0 is even); different result
     private static readonly GoldenScenario S28 = new(
         "KWD Excl 5% tax midpoint (0.5005 → 0.501 AwayFromZero)",
         "KWD", TaxMode.Exclusive,
@@ -465,7 +465,7 @@ internal static class GoldenScenarios
 
     // S29: USD excl, qty 2.5 @ 1.21, no tax
     // lineGross=2.5*1.21=3.025 → Round(3.025,2)=3.03  [midpoint → AwayFromZero up]
-    // ToEven gives 3.02 (2 is even) — different result
+    // ToEven gives 3.02 (2 is even); different result
     // Also catches M4: without Round(lineGross,p) lineTotal would be 3.025 ≠ 3.03
     private static readonly GoldenScenario S29 = new(
         "USD Excl line-gross midpoint (3.025 → 3.03 AwayFromZero)",
@@ -480,7 +480,7 @@ internal static class GoldenScenarios
     // S30: USD excl, qty 1 @ 10.10, invoice discount 5%, no tax
     // lineTotal=10.10, Subtotal=10.10
     // DiscountAmount=Round(10.10*0.05,2)=Round(0.505,2)=0.51  [midpoint → AwayFromZero up]
-    // ToEven gives 0.50 (0 is even) — different result
+    // ToEven gives 0.50 (0 is even); different result
     // Also catches M6: without Round(discountAmount) → discountAmount=0.505, Total=9.595 ≠ 9.59
     private static readonly GoldenScenario S30 = new(
         "USD Excl invoice-discount midpoint (0.505 → 0.51 AwayFromZero)",
@@ -494,7 +494,7 @@ internal static class GoldenScenarios
 
     // S31: USD excl, qty 0.333 @ 1.00, no tax
     // lineGross=0.333*1.00=0.333 → Round(0.333,2)=0.33  [3rd decimal=3 < 5, rounds down]
-    // Without Round(lineGross,p) lineTotal would be 0.333 ≠ 0.33 — catches M4
+    // Without Round(lineGross,p) lineTotal would be 0.333 ≠ 0.33; catches M4
     private static readonly GoldenScenario S31 = new(
         "USD Excl line-gross sub-precision (0.333 → 0.33)",
         "USD", TaxMode.Exclusive,
@@ -507,7 +507,7 @@ internal static class GoldenScenarios
 
     // S32: KWD excl, qty 0.3333 @ 1.000, no tax (KWD 3dp variant of S31)
     // lineGross=0.3333*1.000=0.3333 → Round(0.3333,3)=0.333  [4th decimal=3 < 5, rounds down]
-    // Without Round(lineGross,p) lineTotal would be 0.3333 ≠ 0.333 — catches M4 for 3dp
+    // Without Round(lineGross,p) lineTotal would be 0.3333 ≠ 0.333; catches M4 for 3dp
     private static readonly GoldenScenario S32 = new(
         "KWD Excl line-gross sub-precision (0.3333 → 0.333)",
         "KWD", TaxMode.Exclusive,
@@ -520,7 +520,7 @@ internal static class GoldenScenarios
 
     // S33: JPY excl, qty 1 @ 1001, invoice discount 50%, no tax
     // DiscountAmount=Round(1001*0.50,0)=Round(500.5,0)=501 [midpoint → AwayFromZero up]
-    // ToEven gives 500 (500 is even) — different result; catches M6 for 0dp
+    // ToEven gives 500 (500 is even); different result; catches M6 for 0dp
     private static readonly GoldenScenario S33 = new(
         "JPY Excl invoice-discount midpoint (500.5 → 501 AwayFromZero)",
         "JPY", TaxMode.Exclusive,
@@ -533,7 +533,7 @@ internal static class GoldenScenarios
 
     // S34: KWD excl, qty 1 @ 100.010, invoice discount 5%, no tax
     // DiscountAmount=Round(100.010*0.05,3)=Round(5.0005,3)=5.001 [midpoint → AwayFromZero up]
-    // ToEven gives 5.000 (0 in position 3 is even) — different result; catches M6 for 3dp
+    // ToEven gives 5.000 (0 in position 3 is even); different result; catches M6 for 3dp
     private static readonly GoldenScenario S34 = new(
         "KWD Excl invoice-discount midpoint (5.0005 → 5.001 AwayFromZero)",
         "KWD", TaxMode.Exclusive,

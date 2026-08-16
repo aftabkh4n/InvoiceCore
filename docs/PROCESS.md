@@ -1,4 +1,4 @@
-# InvoiceCore — Build Process
+# InvoiceCore: Build Process
 
 Spec-first, phase-gated development with manual mutation testing at every phase
 boundary. This document records the actual process and concrete findings, not
@@ -37,20 +37,20 @@ means the behaviour it alters is not exercised by any test.
 
 ## Phase 1 mutation findings
 
-Mutations M1–M7 targeted the five-step calculation pipeline and the `Money`
+Mutations M1-M7 targeted the five-step calculation pipeline and the `Money`
 rounding helper.
 
-**M4 — remove `Money.Round` from line totals (step 1)**
+**M4: remove `Money.Round` from line totals (step 1)**
 Kills: **2** (S08, S09).
 
 The existing golden scenarios did not include a line item whose
 `Quantity × UnitPrice` produced a sub-minor-unit result in USD (2 decimal
 places). S08 and S09 covered it for USD; the gap was that no scenario tested
 it for JPY (0 dp) or KWD (3 dp) at the line level. The two kills were enough
-to confirm the rounding site was guarded, so no new scenario was added —
+to confirm the rounding site was guarded, so no new scenario was added,
 but this is noted as a coverage limit.
 
-**M6 — remove `Money.Round` from `DiscountAmount` (step 3)**
+**M6: remove `Money.Round` from `DiscountAmount` (step 3)**
 Initial kills: **2** (S30, Invariant3).
 
 S30 tested a USD invoice-discount midpoint (0.505 → 0.51). `Invariant3`
@@ -66,9 +66,9 @@ S30, S33, S34, Invariant3.
 
 ## Phase 3 mutation findings
 
-Mutations M12–M16 targeted the export layer.
+Mutations M12-M16 targeted the export layer.
 
-**M12 — replace `CultureInfo.InvariantCulture` with `CultureInfo.CurrentCulture`
+**M12: replace `CultureInfo.InvariantCulture` with `CultureInfo.CurrentCulture`
 in CSV decimal formatting**
 
 Initial result: **0 kills** on `ExportToCsv`. The theory tests that ran under
@@ -89,16 +89,16 @@ fractional Subtotal/Tax/Total values. After the fix M12 kills **3**.
 This is the concrete failure mode: a culture-swap test that uses only
 whole-number monetary values does not verify invariant-culture formatting.
 
-**M13 — remove double-quote escaping from `CsvField`**
+**M13: remove double-quote escaping from `CsvField`**
 Kills: **1** (`ExportToCsv_doubles_embedded_quotes`).
 
-**M14 — include Cancelled invoices in monetary totals**
+**M14: include Cancelled invoices in monetary totals**
 Kills: **1** (`Cancelled_excluded_from_monetary_totals_but_counted_in_status`).
 
-**M15 — collapse `ByCurrency` to a single cross-currency total**
+**M15: collapse `ByCurrency` to a single cross-currency total**
 Kills: **5** (all per-currency `SummaryTests`).
 
-**M16 — serialize domain `Invoice` directly instead of `InvoiceDto`**
+**M16: serialize domain `Invoice` directly instead of `InvoiceDto`**
 Kills: **0**.
 
 `Invoice` and `InvoiceDto` have identical public property names and types at
@@ -106,7 +106,7 @@ v1. The source-generated context produces the same JSON for both. The
 `Source_gen_context_resolves_InvoiceDto_type_info` smoke test names the type
 explicitly but does not assert any output shape.
 
-Fix: added `ExportToJson_golden_snapshot` — a committed expected string for a
+Fix: added `ExportToJson_golden_snapshot`, a committed expected string for a
 fixed invoice (deterministic ID, known totals), asserted with
 `Should().Be(Expected)`. This catches field renames, additions, and serialiser
 option changes that property-level assertions miss. M16 would now kill 1.

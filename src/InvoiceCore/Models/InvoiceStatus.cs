@@ -17,7 +17,7 @@ public enum InvoiceStatus
 
     /// <summary>
     /// Derived display state: the invoice is <see cref="Sent"/> and past its due date.
-    /// Never stored or set directly — passing it to <see cref="Invoice.UpdateStatus"/> throws.
+    /// Never stored or set directly; passing it to <see cref="Invoice.UpdateStatus"/> throws.
     /// </summary>
     Overdue = 4,
 }

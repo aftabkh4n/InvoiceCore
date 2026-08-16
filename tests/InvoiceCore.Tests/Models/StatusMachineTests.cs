@@ -24,7 +24,7 @@ public sealed class StatusMachineTests
         return inv;
     }
 
-    // Valid transitions — one test each.
+    // Valid transitions: one test each.
     [Fact] public void Draft_to_Sent_succeeds()       => MakeInvoice(InvoiceStatus.Draft).UpdateStatus(InvoiceStatus.Sent).Status.Should().Be(InvoiceStatus.Sent);
     [Fact] public void Draft_to_Cancelled_succeeds()  => MakeInvoice(InvoiceStatus.Draft).UpdateStatus(InvoiceStatus.Cancelled).Status.Should().Be(InvoiceStatus.Cancelled);
     [Fact] public void Sent_to_Paid_succeeds()        => MakeInvoice(InvoiceStatus.Sent).UpdateStatus(InvoiceStatus.Paid).Status.Should().Be(InvoiceStatus.Paid);
@@ -38,7 +38,7 @@ public sealed class StatusMachineTests
         inv.UpdateStatus(InvoiceStatus.Sent).Should().BeSameAs(inv);
     }
 
-    // Invalid transitions — full matrix of (from, to) pairs not covered above.
+    // Invalid transitions: full matrix of (from, to) pairs not covered above.
     public static IEnumerable<object[]> InvalidTransitions =>
     [
         [InvoiceStatus.Draft,     InvoiceStatus.Draft],

@@ -37,7 +37,7 @@ Console.WriteLine(svc.ExportToJson(invoice));
 ## Tax arithmetic: worked example
 
 Both modes produce the same correctly-rounded totals. `Subtotal` is **always
-tax-exclusive** — this is the value most likely to surprise callers switching
+tax-exclusive**: this is the value most likely to surprise callers switching
 between modes.
 
 ### Exclusive mode (prices are net)
@@ -125,7 +125,7 @@ Unknown codes default to 2 digits and never throw.
 | `InvoicerNETCore`, `Invoicer`, `InvoiceGenerator.Core` | PDF generators | Not model libraries |
 
 InvoiceCore replaces the 400 lines of subtly-wrong tax arithmetic every SaaS
-team writes by hand — with no dependencies, no rendering, and documented,
+team writes by hand, with no dependencies, no rendering, and documented,
 tested rounding behaviour.
 
 ---
@@ -134,7 +134,7 @@ tested rounding behaviour.
 
 | Package | Status |
 |---|---|
-| `InvoiceCore` | v0.1.0 — current |
+| `InvoiceCore` | v0.1.0 (current) |
 | `InvoiceCore.Pdf` | Planned |
 | `InvoiceCore.EfCore` | Planned |
 | `InvoiceCore.Blazor` | Planned |

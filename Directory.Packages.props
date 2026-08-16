@@ -3,7 +3,7 @@
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
   </PropertyGroup>
 
-  <!-- Build tooling — not shipped in the nupkg (PrivateAssets="All" in Directory.Build.props) -->
+  <!-- Build tooling: not shipped in the nupkg (PrivateAssets="All" in Directory.Build.props) -->
   <ItemGroup>
     <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
   </ItemGroup>

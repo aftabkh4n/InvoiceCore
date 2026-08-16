@@ -30,7 +30,7 @@ public sealed class LineItemRow
 
 /// <summary>
 /// A flattened, display-oriented view of an <see cref="Invoice"/> with formatted
-/// money strings. No rendering dependency — intended for consumption by
+/// money strings. No rendering dependency; intended for consumption by
 /// <c>InvoiceCore.Pdf</c> or similar presentation layers.
 /// </summary>
 public sealed class InvoicePresentation

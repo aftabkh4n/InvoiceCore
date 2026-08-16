@@ -1,6 +1,6 @@
 namespace InvoiceCore;
 
-/// <summary>A single line for calculation purposes. No validation — use InvoiceValidator upstream.</summary>
+/// <summary>A single line for calculation purposes. No validation; use InvoiceValidator upstream.</summary>
 internal sealed record LineItemInput(
     decimal Quantity,
     decimal UnitPrice,
@@ -10,7 +10,7 @@ internal sealed record LineItemInput(
 internal sealed record TaxRateInput(string Name, decimal Percentage);
 
 /// <summary>
-/// Plain data bag passed into <see cref="InvoiceCalculator"/>. Pure input — no validation,
+/// Plain data bag passed into <see cref="InvoiceCalculator"/>. Pure input; no validation,
 /// no behaviour. Build it from a validated domain object.
 /// </summary>
 internal sealed record CalculationInput(

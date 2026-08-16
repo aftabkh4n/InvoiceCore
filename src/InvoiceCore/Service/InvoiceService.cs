@@ -7,7 +7,7 @@ namespace InvoiceCore;
 /// <summary>
 /// Default implementation of <see cref="IInvoiceService"/>. Stateless apart from the
 /// injected <see cref="TimeProvider"/> used for overdue detection.
-/// Construct with <c>new InvoiceService()</c> — no DI framework required.
+/// Construct with <c>new InvoiceService()</c>. No DI framework required.
 /// </summary>
 public sealed class InvoiceService : IInvoiceService
 {

@@ -41,7 +41,7 @@ public sealed class ValidationTests
         HasCode(result, "INVOICE_NUMBER_REQUIRED");
     }
 
-    // CUSTOMER_REQUIRED — null customer
+    // CUSTOMER_REQUIRED: null customer
     [Fact]
     public void CUSTOMER_REQUIRED_null_customer()
     {
@@ -49,7 +49,7 @@ public sealed class ValidationTests
         HasCode(result, "CUSTOMER_REQUIRED");
     }
 
-    // CUSTOMER_REQUIRED — empty name
+    // CUSTOMER_REQUIRED: empty name
     [Fact]
     public void CUSTOMER_REQUIRED_empty_name()
     {
@@ -69,7 +69,7 @@ public sealed class ValidationTests
         HasCode(result, "DUE_BEFORE_ISSUE");
     }
 
-    // DUE_BEFORE_ISSUE — same date is valid
+    // DUE_BEFORE_ISSUE: same date is valid
     [Fact]
     public void Same_issued_and_due_date_is_valid()
     {
@@ -77,7 +77,7 @@ public sealed class ValidationTests
         result.Errors.Should().NotContain(e => e.Code == "DUE_BEFORE_ISSUE");
     }
 
-    // CURRENCY_INVALID — lowercase
+    // CURRENCY_INVALID: lowercase
     [Fact]
     public void CURRENCY_INVALID_lowercase()
     {
@@ -85,7 +85,7 @@ public sealed class ValidationTests
         HasCode(result, "CURRENCY_INVALID");
     }
 
-    // CURRENCY_INVALID — wrong length
+    // CURRENCY_INVALID: wrong length
     [Theory]
     [InlineData("US")]
     [InlineData("USDD")]
@@ -112,7 +112,7 @@ public sealed class ValidationTests
         HasCode(result, "LINE_DESCRIPTION_REQUIRED");
     }
 
-    // LINE_QUANTITY_INVALID — zero
+    // LINE_QUANTITY_INVALID: zero
     [Fact]
     public void LINE_QUANTITY_INVALID_zero()
     {
@@ -120,7 +120,7 @@ public sealed class ValidationTests
         HasCode(result, "LINE_QUANTITY_INVALID");
     }
 
-    // LINE_QUANTITY_INVALID — negative
+    // LINE_QUANTITY_INVALID: negative
     [Fact]
     public void LINE_QUANTITY_INVALID_negative()
     {
@@ -128,7 +128,7 @@ public sealed class ValidationTests
         HasCode(result, "LINE_QUANTITY_INVALID");
     }
 
-    // LINE_UNIT_PRICE_INVALID — negative (zero is allowed)
+    // LINE_UNIT_PRICE_INVALID: negative (zero is allowed)
     [Fact]
     public void LINE_UNIT_PRICE_INVALID_negative()
     {
@@ -136,7 +136,7 @@ public sealed class ValidationTests
         HasCode(result, "LINE_UNIT_PRICE_INVALID");
     }
 
-    // LINE_UNIT_PRICE_INVALID — zero is valid
+    // LINE_UNIT_PRICE_INVALID: zero is valid
     [Fact]
     public void LINE_UNIT_PRICE_zero_is_valid()
     {
@@ -144,7 +144,7 @@ public sealed class ValidationTests
         result.Errors.Should().NotContain(e => e.Code == "LINE_UNIT_PRICE_INVALID");
     }
 
-    // LINE_DISCOUNT_RANGE — below 0
+    // LINE_DISCOUNT_RANGE: below 0
     [Fact]
     public void LINE_DISCOUNT_RANGE_below_zero()
     {
@@ -152,7 +152,7 @@ public sealed class ValidationTests
         HasCode(result, "LINE_DISCOUNT_RANGE");
     }
 
-    // LINE_DISCOUNT_RANGE — above 100
+    // LINE_DISCOUNT_RANGE: above 100
     [Fact]
     public void LINE_DISCOUNT_RANGE_above_hundred()
     {
@@ -176,7 +176,7 @@ public sealed class ValidationTests
         HasCode(result, "TAX_NAME_REQUIRED");
     }
 
-    // TAX_PERCENTAGE_RANGE — negative
+    // TAX_PERCENTAGE_RANGE: negative
     [Fact]
     public void TAX_PERCENTAGE_RANGE_negative()
     {
@@ -184,7 +184,7 @@ public sealed class ValidationTests
         HasCode(result, "TAX_PERCENTAGE_RANGE");
     }
 
-    // TAX_PERCENTAGE_RANGE — above 100
+    // TAX_PERCENTAGE_RANGE: above 100
     [Fact]
     public void TAX_PERCENTAGE_RANGE_above_hundred()
     {
@@ -192,7 +192,7 @@ public sealed class ValidationTests
         HasCode(result, "TAX_PERCENTAGE_RANGE");
     }
 
-    // TAX_DUPLICATE_NAME — case-insensitive
+    // TAX_DUPLICATE_NAME: case-insensitive
     [Fact]
     public void TAX_DUPLICATE_NAME_case_insensitive()
     {
@@ -204,7 +204,7 @@ public sealed class ValidationTests
         HasCode(result, "TAX_DUPLICATE_NAME");
     }
 
-    // EXCHANGE_RATE_INVALID — rate set but no BaseCurrencyCode
+    // EXCHANGE_RATE_INVALID: rate set but no BaseCurrencyCode
     [Fact]
     public void EXCHANGE_RATE_INVALID_missing_base()
     {
@@ -212,7 +212,7 @@ public sealed class ValidationTests
         HasCode(result, "EXCHANGE_RATE_INVALID");
     }
 
-    // EXCHANGE_RATE_INVALID — BaseCurrencyCode set but no rate
+    // EXCHANGE_RATE_INVALID: BaseCurrencyCode set but no rate
     [Fact]
     public void EXCHANGE_RATE_INVALID_missing_rate()
     {
@@ -220,7 +220,7 @@ public sealed class ValidationTests
         HasCode(result, "EXCHANGE_RATE_INVALID");
     }
 
-    // EXCHANGE_RATE_INVALID — rate is zero
+    // EXCHANGE_RATE_INVALID: rate is zero
     [Fact]
     public void EXCHANGE_RATE_INVALID_zero()
     {
@@ -228,7 +228,7 @@ public sealed class ValidationTests
         HasCode(result, "EXCHANGE_RATE_INVALID");
     }
 
-    // EXCHANGE_RATE_INVALID — negative rate
+    // EXCHANGE_RATE_INVALID: negative rate
     [Fact]
     public void EXCHANGE_RATE_INVALID_negative()
     {
@@ -236,7 +236,7 @@ public sealed class ValidationTests
         HasCode(result, "EXCHANGE_RATE_INVALID");
     }
 
-    // EXCHANGE_RATE — valid (both set, positive) → no error
+    // EXCHANGE_RATE: valid (both set, positive) → no error
     [Fact]
     public void Exchange_rate_valid_when_both_set()
     {
@@ -244,7 +244,7 @@ public sealed class ValidationTests
         result.Errors.Should().NotContain(e => e.Code == "EXCHANGE_RATE_INVALID");
     }
 
-    // EMAIL_INVALID — no @ at all
+    // EMAIL_INVALID: no @ at all
     [Fact]
     public void EMAIL_INVALID_no_at()
     {
@@ -252,7 +252,7 @@ public sealed class ValidationTests
         HasCode(result, "EMAIL_INVALID");
     }
 
-    // EMAIL_INVALID — @ at start (nothing before it)
+    // EMAIL_INVALID: @ at start (nothing before it)
     [Fact]
     public void EMAIL_INVALID_at_start()
     {
@@ -260,7 +260,7 @@ public sealed class ValidationTests
         HasCode(result, "EMAIL_INVALID");
     }
 
-    // EMAIL_INVALID — @ at end (nothing after it)
+    // EMAIL_INVALID: @ at end (nothing after it)
     [Fact]
     public void EMAIL_INVALID_at_end()
     {
@@ -268,7 +268,7 @@ public sealed class ValidationTests
         HasCode(result, "EMAIL_INVALID");
     }
 
-    // EMAIL — valid minimal address → no error
+    // EMAIL: valid minimal address → no error
     [Fact]
     public void Email_valid_minimal()
     {
@@ -276,7 +276,7 @@ public sealed class ValidationTests
         result.Errors.Should().NotContain(e => e.Code == "EMAIL_INVALID");
     }
 
-    // EMAIL — null → no error (optional field)
+    // EMAIL: null → no error (optional field)
     [Fact]
     public void Email_null_is_valid()
     {

@@ -1,4 +1,4 @@
-// InvoiceCore sample — create an invoice with mixed tax rates,
+// InvoiceCore sample: create an invoice with mixed tax rates,
 // print the breakdown, transition status, then export to JSON and CSV.
 
 using System.Globalization;
@@ -24,7 +24,7 @@ var request = new CreateInvoiceRequest
         new LineItem { Description = "Cloud hosting",        Quantity = 1,  UnitPrice = 120m },
         new LineItem { Description = "Support retainer",     Quantity = 12, UnitPrice =  25m },
     ],
-    // Two independent rates — applied additively, never compounded.
+    // Two independent rates, applied additively, never compounded.
     TaxRates =
     [
         new TaxRate { Name = "VAT",            Percentage = 20m },

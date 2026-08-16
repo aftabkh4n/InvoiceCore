@@ -44,7 +44,7 @@ jobs:
           echo "Package: $pkg"
           echo "Size: $size bytes (limit 204800)"
           if [ "$size" -gt 204800 ]; then
-            echo "ERROR: nupkg exceeds 200 KB — something heavy leaked in."
+            echo "ERROR: nupkg exceeds 200 KB: something heavy leaked in."
             exit 1
           fi
 

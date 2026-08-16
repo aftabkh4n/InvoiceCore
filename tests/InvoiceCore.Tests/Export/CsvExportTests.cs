@@ -66,7 +66,7 @@ public sealed class CsvExportTests
 
     // Decimal values use invariant culture (period as decimal separator, no thousands).
     // Uses fractional values (UnitPrice=10.50) so comma-decimal cultures produce a
-    // detectable difference — whole-number totals are identical in all cultures.
+    // detectable difference; whole-number totals are identical in all cultures.
     [Theory]
     [InlineData("de-DE")]
     [InlineData("tr-TR")]
@@ -196,7 +196,7 @@ public sealed class CsvExportTests
         csv.Should().Contain("\"widget, large\"");
     }
 
-    // Culture-swap: tr-TR has dotless-i issue with ToUpper — ensure InvariantCulture used throughout.
+    // Culture-swap: tr-TR has dotless-i issue with ToUpper; ensure InvariantCulture used throughout.
     [Fact]
     public void ExportLineItemsToCsv_decimals_invariant_under_tr_TR()
     {

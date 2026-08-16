@@ -8,11 +8,11 @@ public sealed class OverdueTests
 {
     private static readonly DateOnly DueDate = new(2025, 6, 15);
 
-    // Clock frozen one day before due date — not overdue.
+    // Clock frozen one day before due date: not overdue.
     private static FakeTimeProvider Before => new(new DateTimeOffset(2025, 6, 14, 0, 0, 0, TimeSpan.Zero));
-    // Clock frozen on due date — not overdue (strictly less than).
+    // Clock frozen on due date: not overdue (strictly less than).
     private static FakeTimeProvider OnDate => new(new DateTimeOffset(2025, 6, 15, 0, 0, 0, TimeSpan.Zero));
-    // Clock frozen one day after due date — overdue.
+    // Clock frozen one day after due date: overdue.
     private static FakeTimeProvider After => new(new DateTimeOffset(2025, 6, 16, 0, 0, 0, TimeSpan.Zero));
 
     private static Invoice MakeSent()

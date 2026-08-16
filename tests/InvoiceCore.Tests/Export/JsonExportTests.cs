@@ -137,7 +137,7 @@ public sealed class JsonExportTests
         breakdown[0].GetProperty("amount").GetDecimal().Should().Be(20m);
     }
 
-    // Golden snapshot — exact byte-for-byte match against a committed expected string.
+    // Golden snapshot: exact byte-for-byte match against a committed expected string.
     // Catches schema changes (added/removed/renamed fields, changed serialiser options)
     // that property-level tests miss, including the M16 DTO-bypass case.
     [Fact]

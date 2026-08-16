@@ -75,7 +75,7 @@ public sealed class PropertyTests
         => Arb.From(GenInput());
 
     // -----------------------------------------------------------------------
-    // Invariant 1 — Total == Subtotal - DiscountAmount + TaxAmount (always)
+    // Invariant 1: Total == Subtotal - DiscountAmount + TaxAmount (always)
     // -----------------------------------------------------------------------
     [Property(MaxTest = 1000)]
     public Property Invariant1_total_accounting_identity()
@@ -86,7 +86,7 @@ public sealed class PropertyTests
         });
 
     // -----------------------------------------------------------------------
-    // Invariant 2 — TaxAmount == TaxBreakdown.Sum(t => t.Amount) (always)
+    // Invariant 2: TaxAmount == TaxBreakdown.Sum(t => t.Amount) (always)
     // -----------------------------------------------------------------------
     [Property(MaxTest = 1000)]
     public Property Invariant2_tax_amount_matches_breakdown_sum()
@@ -97,7 +97,7 @@ public sealed class PropertyTests
         });
 
     // -----------------------------------------------------------------------
-    // Invariant 3 — every decimal rounded to p; callers never need to round
+    // Invariant 3: every decimal rounded to p; callers never need to round
     // -----------------------------------------------------------------------
     [Property(MaxTest = 1000)]
     public Property Invariant3_all_decimals_already_rounded()
@@ -114,7 +114,7 @@ public sealed class PropertyTests
         });
 
     // -----------------------------------------------------------------------
-    // Invariant 4 — empty LineItems → all zeros
+    // Invariant 4: empty LineItems → all zeros
     // -----------------------------------------------------------------------
     [Fact]
     public void Invariant4_empty_line_items_produce_all_zeros()
@@ -144,7 +144,7 @@ public sealed class PropertyTests
     }
 
     // -----------------------------------------------------------------------
-    // Invariant 5 — Inclusive, zero discount: Total == sum of LineTotals
+    // Invariant 5: Inclusive, zero discount: Total == sum of LineTotals
     // -----------------------------------------------------------------------
     [Property(MaxTest = 1000)]
     public Property Invariant5_inclusive_zero_discount_total_equals_line_sum()
@@ -155,7 +155,7 @@ public sealed class PropertyTests
         });
 
     // -----------------------------------------------------------------------
-    // Invariant 6 — zero tax rates: TaxAmount == 0 and Total == taxableBase
+    // Invariant 6: zero tax rates: TaxAmount == 0 and Total == taxableBase
     // -----------------------------------------------------------------------
     [Property(MaxTest = 1000)]
     public Property Invariant6_zero_tax_rates_no_tax()
@@ -167,7 +167,7 @@ public sealed class PropertyTests
         });
 
     // -----------------------------------------------------------------------
-    // Invariant 7 — calculation is pure: same result on second call
+    // Invariant 7: calculation is pure: same result on second call
     // Note: record == on IReadOnlyList<T> fields is reference equality, so we
     // compare each scalar field and use SequenceEqual for the collections.
     // -----------------------------------------------------------------------

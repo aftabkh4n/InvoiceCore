@@ -57,7 +57,7 @@ public sealed class ImmutabilityTests
             new DateOnly(2025, 1, 1), new DateOnly(2025, 2, 1),
             new CustomerInfo { Name = "Acme" });
 
-        // The underlying store is an array — casting to List<LineItem> returns null.
+        // The underlying store is an array. Casting to List<LineItem> returns null.
         var asList = inv.LineItems as List<LineItem>;
         asList.Should().BeNull();
     }

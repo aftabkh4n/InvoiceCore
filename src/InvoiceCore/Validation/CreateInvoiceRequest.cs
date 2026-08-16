@@ -33,7 +33,7 @@ public sealed class CreateInvoiceRequest
     /// <summary>Tax rates applied at invoice level.</summary>
     public List<TaxRate> TaxRates { get; set; } = new();
 
-    /// <summary>Invoice-level discount percentage (0–100).</summary>
+    /// <summary>Invoice-level discount percentage (0-100).</summary>
     public decimal DiscountPercent { get; set; }
 
     /// <summary>Optional free-text notes.</summary>
