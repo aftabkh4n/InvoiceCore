@@ -136,4 +136,25 @@ public sealed class JsonExportTests
         breakdown[0].GetProperty("name").GetString().Should().Be("VAT");
         breakdown[0].GetProperty("amount").GetDecimal().Should().Be(20m);
     }
+
+    // Golden snapshot — exact byte-for-byte match against a committed expected string.
+    // Catches schema changes (added/removed/renamed fields, changed serialiser options)
+    // that property-level tests miss, including the M16 DTO-bypass case.
+    [Fact]
+    public void ExportToJson_golden_snapshot()
+    {
+        var inv = new Invoice(
+            [new LineItem { Description = "Consulting", Quantity = 2m, UnitPrice = 75m }],
+            [new TaxRate { Name = "VAT", Percentage = 20m }],
+            "INV-GOLDEN",
+            new DateOnly(2025, 1, 1),
+            new DateOnly(2025, 2, 1),
+            new CustomerInfo { Name = "Acme Corp", Email = "billing@acme.com" },
+            id: new Guid("00000000-0000-0000-0000-000000000001"));
+
+        const string Expected =
+            """{"id":"00000000-0000-0000-0000-000000000001","invoiceNumber":"INV-GOLDEN","issuedDate":"2025-01-01","dueDate":"2025-02-01","status":"Draft","currencyCode":"USD","taxMode":"Exclusive","customer":{"name":"Acme Corp","email":"billing@acme.com","address":null,"taxNumber":null},"lineItems":[{"description":"Consulting","quantity":2,"unitPrice":75,"discountPercent":0,"total":150}],"taxRates":[{"name":"VAT","percentage":20}],"discountPercent":0,"notes":null,"baseCurrencyCode":null,"exchangeRate":null,"subtotal":150,"discountAmount":0,"taxAmount":30,"total":180,"taxBreakdown":[{"name":"VAT","percentage":20,"amount":30}]}""";
+
+        Svc().ExportToJson(inv).Should().Be(Expected);
+    }
 }
