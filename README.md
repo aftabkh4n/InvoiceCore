@@ -12,7 +12,11 @@
 
 ## Quick start
 
+<!-- Compiled verbatim as a test: tests/InvoiceCore.Tests/ReadmeExamplesTests.cs -->
 ```csharp
+using System;       // Console, DateOnly
+using InvoiceCore;  // InvoiceService, CreateInvoiceRequest, CustomerInfo, LineItem, TaxRate
+
 var svc = new InvoiceService();
 
 var invoice = svc.Create(new CreateInvoiceRequest
@@ -54,6 +58,8 @@ Total                    $120.00
 ### Inclusive mode (same gross price, tax extracted)
 
 ```csharp
+using InvoiceCore; // TaxMode
+
 // TaxMode = TaxMode.Inclusive, one line Qty 1 × $120.00, VAT 20%
 ```
 
@@ -134,7 +140,7 @@ tested rounding behaviour.
 
 | Package | Status |
 |---|---|
-| `InvoiceCore` | v0.1.0 (current) |
+| `InvoiceCore` | v0.1.1 (current) |
 | `InvoiceCore.Pdf` | Planned |
 | `InvoiceCore.EfCore` | Planned |
 | `InvoiceCore.Blazor` | Planned |
