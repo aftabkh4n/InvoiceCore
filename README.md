@@ -1,6 +1,6 @@
 # InvoiceCore
 
-> Zero-dependency invoicing primitives for .NET. Correct decimal money maths,
+> Zero-dependency invoicing primitives for .NET. Predictable, documented rounding,
 > multi-rate tax (inclusive and exclusive), status rules, JSON/CSV export.
 > Bring your own storage and rendering.
 
@@ -14,8 +14,9 @@
 
 <!-- Compiled verbatim as a test: tests/InvoiceCore.Tests/ReadmeExamplesTests.cs -->
 ```csharp
-using System;       // Console, DateOnly
-using InvoiceCore;  // InvoiceService, CreateInvoiceRequest, CustomerInfo, LineItem, TaxRate
+using System;                      // Console, DateOnly
+using System.Collections.Generic;  // List<T>
+using InvoiceCore;                 // InvoiceService, CreateInvoiceRequest, CustomerInfo, LineItem, TaxRate
 
 var svc = new InvoiceService();
 
@@ -26,12 +27,12 @@ var invoice = svc.Create(new CreateInvoiceRequest
     DueDate       = new DateOnly(2025, 2, 15),
     CurrencyCode  = "USD",
     Customer      = new CustomerInfo { Name = "Acme Corp" },
-    LineItems     = [new LineItem { Description = "Consulting", Quantity = 2, UnitPrice = 50m }],
-    TaxRates      = [new TaxRate  { Name = "VAT", Percentage = 20m }],
+    LineItems     = new List<LineItem> { new LineItem { Description = "Consulting", Quantity = 2, UnitPrice = 50m } },
+    TaxRates      = new List<TaxRate>  { new TaxRate  { Name = "VAT", Percentage = 20m } },
 });
 
 Console.WriteLine($"Subtotal : {invoice.Subtotal:C}");   // $100.00
-Console.WriteLine($"VAT 20%  : {invoice.TaxAmount:C}");  // $ 20.00
+Console.WriteLine($"VAT 20%  : {invoice.TaxAmount:C}");  // $20.00
 Console.WriteLine($"Total    : {invoice.Total:C}");       // $120.00
 Console.WriteLine(svc.ExportToJson(invoice));
 ```
@@ -120,6 +121,15 @@ Unknown codes default to 2 digits and never throw.
 - **Not a recurring-invoice engine.** No schedules, templates, or auto-numbering.
 - **Not a currency converter.** An exchange rate can be stored on an invoice for
   reporting grouping; it is never applied.
+- **Not a per-line tax engine.** Tax rates apply at invoice level in v1. Line
+  items with differing VAT rates are not supported yet.
+
+---
+
+## How this was built
+
+See [docs/PROCESS.md](docs/PROCESS.md). The test suite was adversarially verified
+by mutation testing, which found four defects a green 202-test suite could not see.
 
 ---
 

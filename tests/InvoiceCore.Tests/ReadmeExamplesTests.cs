@@ -21,8 +21,8 @@ public sealed class ReadmeExamplesTests
             DueDate       = new DateOnly(2025, 2, 15),
             CurrencyCode  = "USD",
             Customer      = new CustomerInfo { Name = "Acme Corp" },
-            LineItems     = [new LineItem { Description = "Consulting", Quantity = 2, UnitPrice = 50m }],
-            TaxRates      = [new TaxRate  { Name = "VAT", Percentage = 20m }],
+            LineItems     = new List<LineItem> { new LineItem { Description = "Consulting", Quantity = 2, UnitPrice = 50m } },
+            TaxRates      = new List<TaxRate>  { new TaxRate  { Name = "VAT", Percentage = 20m } },
         });
         // === end README block ===
 

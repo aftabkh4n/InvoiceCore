@@ -4,7 +4,7 @@
     <AssemblyName>InvoiceCore</AssemblyName>
     <IsAotCompatible>true</IsAotCompatible>
     <PackageId>InvoiceCore</PackageId>
-    <Description>Zero-dependency invoicing primitives for .NET. Correct decimal money maths, multi-rate tax (inclusive and exclusive), status rules, JSON/CSV export. Bring your own storage and rendering.</Description>
+    <Description>Zero-dependency invoicing primitives for .NET. Predictable, documented rounding, multi-rate tax (inclusive and exclusive), status rules, JSON/CSV export. Bring your own storage and rendering.</Description>
     <PackageTags>invoice;invoicing;tax;money;decimal;rounding</PackageTags>
   </PropertyGroup>
 
