@@ -17,16 +17,17 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0  # full history for SourceLink
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: |
             8.0.x
             9.0.x
+            10.0.x
 
       - name: Restore
         run: dotnet restore
@@ -53,7 +54,7 @@ jobs:
           fi
 
       - name: Upload nupkg
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: nupkg-${{ matrix.os }}
           path: artifacts/

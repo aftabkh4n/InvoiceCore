@@ -150,7 +150,7 @@ tested rounding behaviour.
 
 | Package | Status |
 |---|---|
-| `InvoiceCore` | v0.1.1 (current) |
+| `InvoiceCore` | v0.2.0 (current) |
 | `InvoiceCore.Pdf` | Planned |
 | `InvoiceCore.EfCore` | Planned |
 | `InvoiceCore.Blazor` | Planned |
