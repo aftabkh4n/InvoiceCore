@@ -54,19 +54,53 @@ public sealed class InvoiceService : IInvoiceService
     /// <inheritdoc/>
     public string ExportToJson(Invoice invoice, JsonExportOptions? options = null)
     {
-        var dto = InvoiceDto.From(invoice);
-        return options?.Indented == true
-            ? JsonSerializer.Serialize(dto, InvoiceJsonContextIndented.Default.InvoiceDto)
-            : JsonSerializer.Serialize(dto, InvoiceJsonContext.Default.InvoiceDto);
+        var opts = options ?? new JsonExportOptions();
+        if (opts.MoneyFormat == MoneyFormat.String)
+        {
+            var dto = InvoiceStringDto.From(invoice);
+            return (opts.Indented, opts.IncludeNulls) switch
+            {
+                (false, false) => JsonSerializer.Serialize(dto, InvoiceStringJsonContext.Default.InvoiceStringDto),
+                (true,  false) => JsonSerializer.Serialize(dto, InvoiceStringJsonContextIndented.Default.InvoiceStringDto),
+                (false, true)  => JsonSerializer.Serialize(dto, InvoiceStringJsonContextWithNulls.Default.InvoiceStringDto),
+                _              => JsonSerializer.Serialize(dto, InvoiceStringJsonContextIndentedWithNulls.Default.InvoiceStringDto),
+            };
+        }
+
+        var numDto = InvoiceDto.From(invoice);
+        return (opts.Indented, opts.IncludeNulls) switch
+        {
+            (false, false) => JsonSerializer.Serialize(numDto, InvoiceJsonContextNoNulls.Default.InvoiceDto),
+            (true,  false) => JsonSerializer.Serialize(numDto, InvoiceJsonContextIndentedNoNulls.Default.InvoiceDto),
+            (false, true)  => JsonSerializer.Serialize(numDto, InvoiceJsonContext.Default.InvoiceDto),
+            _              => JsonSerializer.Serialize(numDto, InvoiceJsonContextIndented.Default.InvoiceDto),
+        };
     }
 
     /// <inheritdoc/>
     public string ExportToJson(IEnumerable<Invoice> invoices, JsonExportOptions? options = null)
     {
-        var dtos = invoices.Select(InvoiceDto.From).ToArray();
-        return options?.Indented == true
-            ? JsonSerializer.Serialize(dtos, InvoiceJsonContextIndented.Default.InvoiceDtoArray)
-            : JsonSerializer.Serialize(dtos, InvoiceJsonContext.Default.InvoiceDtoArray);
+        var opts = options ?? new JsonExportOptions();
+        if (opts.MoneyFormat == MoneyFormat.String)
+        {
+            var dtos = invoices.Select(InvoiceStringDto.From).ToArray();
+            return (opts.Indented, opts.IncludeNulls) switch
+            {
+                (false, false) => JsonSerializer.Serialize(dtos, InvoiceStringJsonContext.Default.InvoiceStringDtoArray),
+                (true,  false) => JsonSerializer.Serialize(dtos, InvoiceStringJsonContextIndented.Default.InvoiceStringDtoArray),
+                (false, true)  => JsonSerializer.Serialize(dtos, InvoiceStringJsonContextWithNulls.Default.InvoiceStringDtoArray),
+                _              => JsonSerializer.Serialize(dtos, InvoiceStringJsonContextIndentedWithNulls.Default.InvoiceStringDtoArray),
+            };
+        }
+
+        var numDtos = invoices.Select(InvoiceDto.From).ToArray();
+        return (opts.Indented, opts.IncludeNulls) switch
+        {
+            (false, false) => JsonSerializer.Serialize(numDtos, InvoiceJsonContextNoNulls.Default.InvoiceDtoArray),
+            (true,  false) => JsonSerializer.Serialize(numDtos, InvoiceJsonContextIndentedNoNulls.Default.InvoiceDtoArray),
+            (false, true)  => JsonSerializer.Serialize(numDtos, InvoiceJsonContext.Default.InvoiceDtoArray),
+            _              => JsonSerializer.Serialize(numDtos, InvoiceJsonContextIndented.Default.InvoiceDtoArray),
+        };
     }
 
     /// <inheritdoc/>

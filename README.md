@@ -39,6 +39,50 @@ Console.WriteLine(svc.ExportToJson(invoice));
 
 ---
 
+## JSON export
+
+`ExportToJson` returns a camelCase JSON string. Two options control the output:
+
+| Option | Default | Effect |
+|---|---|---|
+| `MoneyFormat` | `MoneyFormat.String` | Monetary amounts as quoted decimal strings (`"10.50"`) |
+| `IncludeNulls` | `false` | Omit `null` optional fields |
+
+**Default output (MoneyFormat.String, IncludeNulls=false):**
+
+```json
+{
+  "invoiceNumber": "INV-001",
+  "currencyCode": "USD",
+  "subtotal": "100.00",
+  "taxAmount": "20.00",
+  "total": "120.00",
+  "lineItems": [{ "unitPrice": "50.00", "total": "100.00", ... }],
+  ...
+}
+```
+
+Monetary strings are formatted to the currency's minor-unit precision using
+`InvariantCulture`: JPY produces `"1000"`, KWD produces `"100.010"`. Percentages,
+quantities, and `exchangeRate` stay as JSON numbers.
+
+**Legacy numeric output (restores pre-0.3.0 behaviour):**
+
+```csharp
+var json = svc.ExportToJson(invoice, new JsonExportOptions
+{
+    MoneyFormat  = MoneyFormat.Number,
+    IncludeNulls = true,
+});
+```
+
+> **Breaking change in 0.3.0:** The defaults changed from `MoneyFormat.Number +
+> IncludeNulls=true` to `MoneyFormat.String + IncludeNulls=false`. Consumers
+> that parse monetary fields as numbers or compare exact JSON byte-for-byte must
+> update their code.
+
+---
+
 ## Tax arithmetic: worked example
 
 Both modes produce the same correctly-rounded totals. `Subtotal` is **always
@@ -150,7 +194,7 @@ tested rounding behaviour.
 
 | Package | Status |
 |---|---|
-| `InvoiceCore` | v0.2.0 (current) |
+| `InvoiceCore` | v0.2.0 (released), v0.3.0 (in progress) |
 | `InvoiceCore.Pdf` | Planned |
 | `InvoiceCore.EfCore` | Planned |
 | `InvoiceCore.Blazor` | Planned |

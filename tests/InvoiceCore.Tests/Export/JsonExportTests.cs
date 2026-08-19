@@ -74,7 +74,8 @@ public sealed class JsonExportTests
     [Fact]
     public void ExportToJson_includes_computed_totals()
     {
-        var json = Svc().ExportToJson(SimpleInvoice());
+        var json = Svc().ExportToJson(SimpleInvoice(),
+            new JsonExportOptions { MoneyFormat = MoneyFormat.Number, IncludeNulls = true });
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
         root.GetProperty("subtotal").GetDecimal().Should().Be(100m);
@@ -129,7 +130,8 @@ public sealed class JsonExportTests
     [Fact]
     public void ExportToJson_taxBreakdown_present()
     {
-        var json = Svc().ExportToJson(SimpleInvoice());
+        var json = Svc().ExportToJson(SimpleInvoice(),
+            new JsonExportOptions { MoneyFormat = MoneyFormat.Number, IncludeNulls = true });
         using var doc = JsonDocument.Parse(json);
         var breakdown = doc.RootElement.GetProperty("taxBreakdown");
         breakdown.GetArrayLength().Should().Be(1);
@@ -152,8 +154,9 @@ public sealed class JsonExportTests
             new CustomerInfo { Name = "Acme Corp", Email = "billing@acme.com" },
             id: new Guid("00000000-0000-0000-0000-000000000001"));
 
+        // Default: MoneyFormat.String + IncludeNulls=false
         const string Expected =
-            """{"id":"00000000-0000-0000-0000-000000000001","invoiceNumber":"INV-GOLDEN","issuedDate":"2025-01-01","dueDate":"2025-02-01","status":"Draft","currencyCode":"USD","taxMode":"Exclusive","customer":{"name":"Acme Corp","email":"billing@acme.com","address":null,"taxNumber":null},"lineItems":[{"description":"Consulting","quantity":2,"unitPrice":75,"discountPercent":0,"total":150}],"taxRates":[{"name":"VAT","percentage":20}],"discountPercent":0,"notes":null,"baseCurrencyCode":null,"exchangeRate":null,"subtotal":150,"discountAmount":0,"taxAmount":30,"total":180,"taxBreakdown":[{"name":"VAT","percentage":20,"amount":30}]}""";
+            """{"id":"00000000-0000-0000-0000-000000000001","invoiceNumber":"INV-GOLDEN","issuedDate":"2025-01-01","dueDate":"2025-02-01","status":"Draft","currencyCode":"USD","taxMode":"Exclusive","customer":{"name":"Acme Corp","email":"billing@acme.com"},"lineItems":[{"description":"Consulting","quantity":2,"unitPrice":"75.00","discountPercent":0,"total":"150.00"}],"taxRates":[{"name":"VAT","percentage":20}],"discountPercent":0,"subtotal":"150.00","discountAmount":"0.00","taxAmount":"30.00","total":"180.00","taxBreakdown":[{"name":"VAT","percentage":20,"amount":"30.00"}]}""";
 
         Svc().ExportToJson(inv).Should().Be(Expected);
     }
