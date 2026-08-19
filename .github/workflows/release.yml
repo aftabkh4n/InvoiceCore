@@ -35,6 +35,16 @@ jobs:
       - name: Test
         run: dotnet test --no-build -c Release
 
+      - name: Verify tag matches project version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          ver=$(grep -oPm1 '(?<=<Version>)[^<]+' Directory.Build.props)
+          if [ "$tag" != "$ver" ]; then
+            echo "Tag $tag does not match Version $ver in Directory.Build.props"
+            exit 1
+          fi
+          echo "Tag $tag matches project version $ver"
+
       - name: Pack
         run: dotnet pack src/InvoiceCore/InvoiceCore.csproj --no-build -c Release -o artifacts
 
