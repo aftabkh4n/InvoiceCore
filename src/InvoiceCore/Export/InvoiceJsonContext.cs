@@ -18,33 +18,12 @@ internal sealed partial class InvoiceJsonContext : JsonSerializerContext
 
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    WriteIndented = true,
-    UseStringEnumConverter = true)]
-[JsonSerializable(typeof(InvoiceDto))]
-[JsonSerializable(typeof(InvoiceDto[]))]
-internal sealed partial class InvoiceJsonContextIndented : JsonSerializerContext
-{
-}
-
-[JsonSourceGenerationOptions(
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false,
     UseStringEnumConverter = true,
     DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
 [JsonSerializable(typeof(InvoiceDto))]
 [JsonSerializable(typeof(InvoiceDto[]))]
 internal sealed partial class InvoiceJsonContextNoNulls : JsonSerializerContext
-{
-}
-
-[JsonSourceGenerationOptions(
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    WriteIndented = true,
-    UseStringEnumConverter = true,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-[JsonSerializable(typeof(InvoiceDto))]
-[JsonSerializable(typeof(InvoiceDto[]))]
-internal sealed partial class InvoiceJsonContextIndentedNoNulls : JsonSerializerContext
 {
 }
 
@@ -65,31 +44,10 @@ internal sealed partial class InvoiceStringJsonContext : JsonSerializerContext
 
 [JsonSourceGenerationOptions(
     PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    WriteIndented = true,
-    UseStringEnumConverter = true,
-    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull)]
-[JsonSerializable(typeof(InvoiceStringDto))]
-[JsonSerializable(typeof(InvoiceStringDto[]))]
-internal sealed partial class InvoiceStringJsonContextIndented : JsonSerializerContext
-{
-}
-
-[JsonSourceGenerationOptions(
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
     WriteIndented = false,
     UseStringEnumConverter = true)]
 [JsonSerializable(typeof(InvoiceStringDto))]
 [JsonSerializable(typeof(InvoiceStringDto[]))]
 internal sealed partial class InvoiceStringJsonContextWithNulls : JsonSerializerContext
-{
-}
-
-[JsonSourceGenerationOptions(
-    PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
-    WriteIndented = true,
-    UseStringEnumConverter = true)]
-[JsonSerializable(typeof(InvoiceStringDto))]
-[JsonSerializable(typeof(InvoiceStringDto[]))]
-internal sealed partial class InvoiceStringJsonContextIndentedWithNulls : JsonSerializerContext
 {
 }

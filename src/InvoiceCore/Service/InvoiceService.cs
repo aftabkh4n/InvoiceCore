@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 
 namespace InvoiceCore;
 
@@ -58,23 +59,17 @@ public sealed class InvoiceService : IInvoiceService
         if (opts.MoneyFormat == MoneyFormat.String)
         {
             var dto = InvoiceStringDto.From(invoice);
-            return (opts.Indented, opts.IncludeNulls) switch
-            {
-                (false, false) => JsonSerializer.Serialize(dto, InvoiceStringJsonContext.Default.InvoiceStringDto),
-                (true,  false) => JsonSerializer.Serialize(dto, InvoiceStringJsonContextIndented.Default.InvoiceStringDto),
-                (false, true)  => JsonSerializer.Serialize(dto, InvoiceStringJsonContextWithNulls.Default.InvoiceStringDto),
-                _              => JsonSerializer.Serialize(dto, InvoiceStringJsonContextIndentedWithNulls.Default.InvoiceStringDto),
-            };
+            var ti = opts.IncludeNulls
+                ? InvoiceStringJsonContextWithNulls.Default.InvoiceStringDto
+                : InvoiceStringJsonContext.Default.InvoiceStringDto;
+            return opts.Indented ? SerializeIndented(dto, ti) : JsonSerializer.Serialize(dto, ti);
         }
 
         var numDto = InvoiceDto.From(invoice);
-        return (opts.Indented, opts.IncludeNulls) switch
-        {
-            (false, false) => JsonSerializer.Serialize(numDto, InvoiceJsonContextNoNulls.Default.InvoiceDto),
-            (true,  false) => JsonSerializer.Serialize(numDto, InvoiceJsonContextIndentedNoNulls.Default.InvoiceDto),
-            (false, true)  => JsonSerializer.Serialize(numDto, InvoiceJsonContext.Default.InvoiceDto),
-            _              => JsonSerializer.Serialize(numDto, InvoiceJsonContextIndented.Default.InvoiceDto),
-        };
+        var numTi = opts.IncludeNulls
+            ? InvoiceJsonContext.Default.InvoiceDto
+            : InvoiceJsonContextNoNulls.Default.InvoiceDto;
+        return opts.Indented ? SerializeIndented(numDto, numTi) : JsonSerializer.Serialize(numDto, numTi);
     }
 
     /// <inheritdoc/>
@@ -84,23 +79,26 @@ public sealed class InvoiceService : IInvoiceService
         if (opts.MoneyFormat == MoneyFormat.String)
         {
             var dtos = invoices.Select(InvoiceStringDto.From).ToArray();
-            return (opts.Indented, opts.IncludeNulls) switch
-            {
-                (false, false) => JsonSerializer.Serialize(dtos, InvoiceStringJsonContext.Default.InvoiceStringDtoArray),
-                (true,  false) => JsonSerializer.Serialize(dtos, InvoiceStringJsonContextIndented.Default.InvoiceStringDtoArray),
-                (false, true)  => JsonSerializer.Serialize(dtos, InvoiceStringJsonContextWithNulls.Default.InvoiceStringDtoArray),
-                _              => JsonSerializer.Serialize(dtos, InvoiceStringJsonContextIndentedWithNulls.Default.InvoiceStringDtoArray),
-            };
+            var ti = opts.IncludeNulls
+                ? InvoiceStringJsonContextWithNulls.Default.InvoiceStringDtoArray
+                : InvoiceStringJsonContext.Default.InvoiceStringDtoArray;
+            return opts.Indented ? SerializeIndented(dtos, ti) : JsonSerializer.Serialize(dtos, ti);
         }
 
         var numDtos = invoices.Select(InvoiceDto.From).ToArray();
-        return (opts.Indented, opts.IncludeNulls) switch
-        {
-            (false, false) => JsonSerializer.Serialize(numDtos, InvoiceJsonContextNoNulls.Default.InvoiceDtoArray),
-            (true,  false) => JsonSerializer.Serialize(numDtos, InvoiceJsonContextIndentedNoNulls.Default.InvoiceDtoArray),
-            (false, true)  => JsonSerializer.Serialize(numDtos, InvoiceJsonContext.Default.InvoiceDtoArray),
-            _              => JsonSerializer.Serialize(numDtos, InvoiceJsonContextIndented.Default.InvoiceDtoArray),
-        };
+        var numTi = opts.IncludeNulls
+            ? InvoiceJsonContext.Default.InvoiceDtoArray
+            : InvoiceJsonContextNoNulls.Default.InvoiceDtoArray;
+        return opts.Indented ? SerializeIndented(numDtos, numTi) : JsonSerializer.Serialize(numDtos, numTi);
+    }
+
+    private static string SerializeIndented<T>(T value, JsonTypeInfo<T> typeInfo)
+    {
+        using var stream = new MemoryStream();
+        using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
+        JsonSerializer.Serialize(writer, value, typeInfo);
+        writer.Flush();
+        return Encoding.UTF8.GetString(stream.ToArray());
     }
 
     /// <inheritdoc/>
