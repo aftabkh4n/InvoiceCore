@@ -41,15 +41,20 @@ jobs:
       - name: Pack
         run: dotnet pack src/InvoiceCore/InvoiceCore.csproj --no-build -c Release -o artifacts
 
-      - name: Check nupkg size (must be ≤ 200 KB)
+      # Guard against accidental inclusion of binaries, test assemblies, or
+      # data files, which produce MB-scale packages. Calibrated to the
+      # failure mode, not to current package size (183 KB at 0.3.0). If this
+      # fires on legitimate growth, inspect the nupkg contents before raising
+      # it.
+      - name: Check nupkg size (must be ≤ 350 KB)
         shell: bash
         run: |
           pkg=$(ls artifacts/*.nupkg | grep -v '\.symbols\.' | head -1)
           size=$(wc -c < "$pkg")
           echo "Package: $pkg"
-          echo "Size: $size bytes (limit 204800)"
-          if [ "$size" -gt 204800 ]; then
-            echo "ERROR: nupkg exceeds 200 KB: something heavy leaked in."
+          echo "Size: $size bytes (limit 358400)"
+          if [ "$size" -gt 358400 ]; then
+            echo "ERROR: nupkg exceeds 350 KB: something heavy leaked in."
             exit 1
           fi
 
