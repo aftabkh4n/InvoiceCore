@@ -151,6 +151,41 @@ Unknown codes default to 2 digits and never throw.
 
 ---
 
+## Tax compliance
+
+InvoiceCore's rounding has been validated against two published tax authority sources.
+Full comparison tables and source links are in [docs/TAX-CONFORMANCE.md](docs/TAX-CONFORMANCE.md).
+
+### Rounding rule
+
+[HMRC VATREC12030](https://www.gov.uk/hmrc-internal-manuals/vat-trader-records/vatrec12030)
+and [ATO GSTA 1999 s9-90](https://classic.austlii.edu.au/au/legis/cth/consol_act/antsasta1999402/s9.90.html)
+both specify the same rule: round to the nearest minor unit, half-up at the midpoint.
+InvoiceCore uses `MidpointRounding.AwayFromZero`, which matches this exactly for positive amounts.
+
+### Tax applied to the rounded subtotal, not per line
+
+InvoiceCore applies the tax rate to the rounded subtotal. HMRC and the ATO both permit
+per-line rounding, which can differ by one minor unit on multi-line invoices. Example at 20% UK VAT:
+
+| Method | Tax | Total |
+|---|---|---|
+| InvoiceCore: `Round(£5.01 × 0.20)` | £1.00 | £6.01 |
+| HMRC per-line (also permitted): `3 × Round(£1.67 × 0.20)` | £0.99 | £6.00 |
+
+Both are acceptable under HMRC guidance. InvoiceCore does not offer a per-line mode.
+
+### HMRC truncation concession (Notice 700 §17.5) — not implemented
+
+HMRC permits invoice traders to optionally round total VAT **down** to the nearest penny
+(truncation, not half-up). InvoiceCore does not implement this. Callers who need it must
+post-process `TaxAmount`. The concession is relevant only at the UK 5% reduced rate on
+specific net values — for example, 5% of £0.30 = £0.015 exactly: InvoiceCore gives £0.02,
+the concession allows £0.01. No divergence is possible at the standard 20% rate on
+whole-penny net values, because 20% of any integer number of pence is never exactly 0.5p.
+
+---
+
 ## What this is not
 
 - **Not a payment processor.** No partial payments, payment allocation, or credit
@@ -194,7 +229,7 @@ tested rounding behaviour.
 
 | Package | Status |
 |---|---|
-| `InvoiceCore` | v0.2.0 (released), v0.3.0 (in progress) |
+| `InvoiceCore` | v0.3.0 (current) |
 | `InvoiceCore.Pdf` | Planned |
 | `InvoiceCore.EfCore` | Planned |
 | `InvoiceCore.Blazor` | Planned |
