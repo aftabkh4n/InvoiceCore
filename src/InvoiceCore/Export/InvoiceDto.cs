@@ -44,6 +44,7 @@ internal sealed class InvoiceDto
     public InvoiceStatus Status { get; init; }
     public string CurrencyCode { get; init; } = "";
     public TaxMode TaxMode { get; init; }
+    public TaxCalculationMethod TaxCalculationMethod { get; init; }
     public CustomerInfoDto Customer { get; init; } = new();
     public LineItemDto[] LineItems { get; init; } = [];
     public TaxRateDto[] TaxRates { get; init; } = [];
@@ -66,6 +67,7 @@ internal sealed class InvoiceDto
         Status = inv.Status,
         CurrencyCode = inv.CurrencyCode,
         TaxMode = inv.TaxMode,
+        TaxCalculationMethod = inv.TaxCalculationMethod,
         Customer = new CustomerInfoDto
         {
             Name = inv.Customer.Name,
@@ -134,6 +136,7 @@ internal sealed class InvoiceStringDto
     public InvoiceStatus Status { get; init; }
     public string CurrencyCode { get; init; } = "";
     public TaxMode TaxMode { get; init; }
+    public TaxCalculationMethod TaxCalculationMethod { get; init; }
     public CustomerInfoDto Customer { get; init; } = new();
     public LineItemStringDto[] LineItems { get; init; } = [];
     public TaxRateDto[] TaxRates { get; init; } = [];
@@ -161,6 +164,7 @@ internal sealed class InvoiceStringDto
             Status = inv.Status,
             CurrencyCode = inv.CurrencyCode,
             TaxMode = inv.TaxMode,
+            TaxCalculationMethod = inv.TaxCalculationMethod,
             Customer = new CustomerInfoDto
             {
                 Name = inv.Customer.Name,

@@ -31,20 +31,25 @@ public sealed class TaxAuthorityConformanceTests
             TaxRates      = new List<TaxRate>  { new() { Name = "Tax", Percentage = rate } },
         });
 
-    private static Invoice MultiLine(string currency, decimal rate, decimal[] prices)
+    private static Invoice MultiLine(
+        string currency,
+        decimal rate,
+        decimal[] prices,
+        TaxCalculationMethod method = TaxCalculationMethod.SubtotalFirst)
     {
         var items = new List<LineItem>();
         foreach (var p in prices)
             items.Add(new LineItem { Description = "Item", Quantity = 1m, UnitPrice = p });
         return Svc().Create(new CreateInvoiceRequest
         {
-            InvoiceNumber = "CONF",
-            IssuedDate    = new DateOnly(2026, 1, 1),
-            DueDate       = new DateOnly(2026, 2, 1),
-            CurrencyCode  = currency,
-            Customer      = new CustomerInfo { Name = "Test" },
-            LineItems     = items,
-            TaxRates      = new List<TaxRate> { new() { Name = "Tax", Percentage = rate } },
+            InvoiceNumber        = "CONF",
+            IssuedDate           = new DateOnly(2026, 1, 1),
+            DueDate              = new DateOnly(2026, 2, 1),
+            CurrencyCode         = currency,
+            Customer             = new CustomerInfo { Name = "Test" },
+            LineItems            = items,
+            TaxRates             = new List<TaxRate> { new() { Name = "Tax", Percentage = rate } },
+            TaxCalculationMethod = method,
         });
     }
 
@@ -100,13 +105,23 @@ public sealed class TaxAuthorityConformanceTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void HMRC_20pct_multiline_uses_subtotal_first_method()
+    public void HMRC_20pct_multiline_SubtotalFirst_uses_aggregate_rounding()
     {
         var inv = MultiLine("GBP", 20m, [1.67m, 1.67m, 1.67m]);
         inv.Subtotal.Should().Be(5.01m);
-        inv.TaxAmount.Should().Be(1.00m);  // subtotal-first: Round(5.01 × 0.20)
+        inv.TaxAmount.Should().Be(1.00m);  // Round(5.01 × 0.20) = Round(1.002) = 1.00
         inv.Total.Should().Be(6.01m);
-        // Per-line (also HMRC-permitted) would give TaxAmount = 0.99 and Total = 6.00
+    }
+
+    [Fact]
+    public void HMRC_20pct_multiline_PerLine_uses_per_line_rounding()
+    {
+        // VATREC12030 permits either method. PerLine gives the documented alternative result.
+        // TaxAmount = 3 × Round(1.67 × 0.20) = 3 × 0.33 = 0.99 (not 1.00)
+        var inv = MultiLine("GBP", 20m, [1.67m, 1.67m, 1.67m], TaxCalculationMethod.PerLine);
+        inv.Subtotal.Should().Be(5.01m);
+        inv.TaxAmount.Should().Be(0.99m);  // 3 × Round(1.67 × 0.20, 2) = 3 × 0.33
+        inv.Total.Should().Be(6.00m);
     }
 
     // -------------------------------------------------------------------------
@@ -147,12 +162,22 @@ public sealed class TaxAuthorityConformanceTests
     // -------------------------------------------------------------------------
 
     [Fact]
-    public void ATO_10pct_two_supplies_uses_total_invoice_rule()
+    public void ATO_10pct_two_supplies_SubtotalFirst_uses_total_invoice_rule()
     {
         var inv = MultiLine("AUD", 10m, [0.05m, 0.05m]);
         inv.Subtotal.Should().Be(0.10m);
-        inv.TaxAmount.Should().Be(0.01m);  // total-invoice rule: Round(0.10 × 0.10)
+        inv.TaxAmount.Should().Be(0.01m);  // total-invoice rule: Round(0.10 × 0.10) = 0.01
         inv.Total.Should().Be(0.11m);
-        // ATO taxable-supply rule (also permitted) would give TaxAmount = 0.02
+    }
+
+    [Fact]
+    public void ATO_10pct_two_supplies_PerLine_uses_taxable_supply_rule()
+    {
+        // GSTA 1999 s9-90 permits the taxable-supply (per-line) method.
+        // TaxAmount = 2 × Round(0.05 × 0.10) = 2 × Round(0.005) = 2 × 0.01 = 0.02
+        var inv = MultiLine("AUD", 10m, [0.05m, 0.05m], TaxCalculationMethod.PerLine);
+        inv.Subtotal.Should().Be(0.10m);
+        inv.TaxAmount.Should().Be(0.02m);  // 2 × Round(0.05 × 0.10, 2) = 2 × 0.01
+        inv.Total.Should().Be(0.12m);
     }
 }

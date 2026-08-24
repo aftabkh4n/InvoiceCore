@@ -28,6 +28,16 @@ public sealed class Invoice
     /// Units of <paramref name="baseCurrencyCode"/> per one unit of <paramref name="currencyCode"/>.
     /// Required when <paramref name="baseCurrencyCode"/> is set.
     /// </param>
+    /// <param name="taxCalculationMethod">
+    /// Whether to apply tax to the aggregate subtotal or accumulate per-line rounded amounts.
+    /// Defaults to <see cref="TaxCalculationMethod.SubtotalFirst"/>.
+    /// <see cref="TaxCalculationMethod.PerLine"/> combined with <see cref="TaxMode.Inclusive"/>
+    /// throws <see cref="NotSupportedException"/>.
+    /// </param>
+    /// <exception cref="NotSupportedException">
+    /// Thrown when <paramref name="taxCalculationMethod"/> is <see cref="TaxCalculationMethod.PerLine"/>
+    /// and <paramref name="taxMode"/> is <see cref="TaxMode.Inclusive"/>. See SPEC.md §4.6.5.
+    /// </exception>
     public Invoice(
         IReadOnlyList<LineItem> lineItems,
         IReadOnlyList<TaxRate> taxRates,
@@ -41,8 +51,14 @@ public sealed class Invoice
         string? notes = null,
         Guid? id = null,
         string? baseCurrencyCode = null,
-        decimal? exchangeRate = null)
+        decimal? exchangeRate = null,
+        TaxCalculationMethod taxCalculationMethod = TaxCalculationMethod.SubtotalFirst)
     {
+        if (taxCalculationMethod == TaxCalculationMethod.PerLine && taxMode == TaxMode.Inclusive)
+            throw new NotSupportedException(
+                "TaxCalculationMethod.PerLine is not supported with TaxMode.Inclusive in this version. " +
+                "See SPEC.md §4.6.5 for the mathematical reason this combination is deferred.");
+
         Id = id ?? Guid.NewGuid();
         InvoiceNumber = invoiceNumber;
         IssuedDate = issuedDate;
@@ -50,6 +66,7 @@ public sealed class Invoice
         Customer = customer;
         CurrencyCode = currencyCode;
         TaxMode = taxMode;
+        TaxCalculationMethod = taxCalculationMethod;
         DiscountPercent = discountPercent;
         Notes = notes;
         BaseCurrencyCode = baseCurrencyCode;
@@ -61,7 +78,8 @@ public sealed class Invoice
             taxRates.Select(r => new TaxRateInput(r.Name, r.Percentage)).ToList(),
             discountPercent,
             taxMode,
-            currencyCode);
+            currencyCode,
+            taxCalculationMethod);
 
         _calc = InvoiceCalculator.Compute(calcInput);
 
@@ -105,6 +123,13 @@ public sealed class Invoice
     /// <summary>Whether prices are tax-exclusive or tax-inclusive.</summary>
     public TaxMode TaxMode { get; }
 
+    /// <summary>
+    /// The method used to accumulate tax across line items. <see cref="TaxCalculationMethod.SubtotalFirst"/>
+    /// applies tax once to the aggregate base; <see cref="TaxCalculationMethod.PerLine"/> rounds per
+    /// line per rate and sums the results.
+    /// </summary>
+    public TaxCalculationMethod TaxCalculationMethod { get; }
+
     /// <summary>Recipient contact and tax details.</summary>
     public CustomerInfo Customer { get; }
 
@@ -135,7 +160,12 @@ public sealed class Invoice
     /// </summary>
     public decimal Subtotal => _calc.Subtotal;
 
-    /// <summary>Invoice-level discount amount, rounded to currency precision.</summary>
+    /// <summary>
+    /// Invoice-level discount amount, rounded to currency precision.
+    /// In <see cref="TaxCalculationMethod.PerLine"/> mode this is the sum of rounded per-line
+    /// discount amounts, which may differ from <c>Round(Subtotal × DiscountPercent / 100)</c>
+    /// by up to one minor unit per line.
+    /// </summary>
     public decimal DiscountAmount => _calc.DiscountAmount;
 
     /// <summary>Sum of all per-rate tax amounts.</summary>

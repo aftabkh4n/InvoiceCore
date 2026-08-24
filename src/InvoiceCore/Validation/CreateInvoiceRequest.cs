@@ -44,4 +44,10 @@ public sealed class CreateInvoiceRequest
 
     /// <summary>Exchange rate: units of <see cref="BaseCurrencyCode"/> per one unit of <see cref="CurrencyCode"/>.</summary>
     public decimal? ExchangeRate { get; set; }
+
+    /// <summary>
+    /// Whether to apply tax to the aggregate subtotal or accumulate per-line rounded amounts.
+    /// Defaults to <see cref="TaxCalculationMethod.SubtotalFirst"/>.
+    /// </summary>
+    public TaxCalculationMethod TaxCalculationMethod { get; set; } = TaxCalculationMethod.SubtotalFirst;
 }

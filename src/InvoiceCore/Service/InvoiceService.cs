@@ -43,7 +43,8 @@ public sealed class InvoiceService : IInvoiceService
             request.Notes,
             request.Id == Guid.Empty ? null : request.Id,
             request.BaseCurrencyCode,
-            request.ExchangeRate);
+            request.ExchangeRate,
+            request.TaxCalculationMethod);
     }
 
     /// <inheritdoc/>

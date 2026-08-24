@@ -156,7 +156,7 @@ public sealed class JsonExportTests
 
         // Default: MoneyFormat.String + IncludeNulls=false
         const string Expected =
-            """{"id":"00000000-0000-0000-0000-000000000001","invoiceNumber":"INV-GOLDEN","issuedDate":"2025-01-01","dueDate":"2025-02-01","status":"Draft","currencyCode":"USD","taxMode":"Exclusive","customer":{"name":"Acme Corp","email":"billing@acme.com"},"lineItems":[{"description":"Consulting","quantity":2,"unitPrice":"75.00","discountPercent":0,"total":"150.00"}],"taxRates":[{"name":"VAT","percentage":20}],"discountPercent":0,"subtotal":"150.00","discountAmount":"0.00","taxAmount":"30.00","total":"180.00","taxBreakdown":[{"name":"VAT","percentage":20,"amount":"30.00"}]}""";
+            """{"id":"00000000-0000-0000-0000-000000000001","invoiceNumber":"INV-GOLDEN","issuedDate":"2025-01-01","dueDate":"2025-02-01","status":"Draft","currencyCode":"USD","taxMode":"Exclusive","taxCalculationMethod":"SubtotalFirst","customer":{"name":"Acme Corp","email":"billing@acme.com"},"lineItems":[{"description":"Consulting","quantity":2,"unitPrice":"75.00","discountPercent":0,"total":"150.00"}],"taxRates":[{"name":"VAT","percentage":20}],"discountPercent":0,"subtotal":"150.00","discountAmount":"0.00","taxAmount":"30.00","total":"180.00","taxBreakdown":[{"name":"VAT","percentage":20,"amount":"30.00"}]}""";
 
         Svc().ExportToJson(inv).Should().Be(Expected);
     }

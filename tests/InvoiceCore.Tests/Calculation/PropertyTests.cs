@@ -74,6 +74,21 @@ public sealed class PropertyTests
     private static Arbitrary<CalculationInput> ArbInput()
         => Arb.From(GenInput());
 
+    // PerLine + Exclusive only (PerLine + Inclusive is unsupported at the Invoice layer;
+    // the calculator itself is pure and accepts any input, so we restrict the generator).
+    private static Gen<CalculationInput> GenPerLineExclusiveInput()
+        => from currency in GenCurrency()
+           from lineCount in Gen.Choose(0, 5)
+           from lines in GenLineItem().ListOf(lineCount)
+           from rateCount in Gen.Choose(0, 3)
+           from rates in GenTaxRate().ListOf(rateCount)
+           from invDisc in GenPercent()
+           select new CalculationInput(lines, rates, invDisc, TaxMode.Exclusive, currency,
+               TaxCalculationMethod.PerLine);
+
+    private static Arbitrary<CalculationInput> ArbPerLineInput()
+        => Arb.From(GenPerLineExclusiveInput());
+
     // -----------------------------------------------------------------------
     // Invariant 1: Total == Subtotal - DiscountAmount + TaxAmount (always)
     // -----------------------------------------------------------------------
@@ -164,6 +179,101 @@ public sealed class PropertyTests
             var r = InvoiceCalculator.Compute(input);
             var taxableBase = r.Subtotal - r.DiscountAmount;
             return r.TaxAmount == 0m && r.Total == taxableBase;
+        });
+
+    // -----------------------------------------------------------------------
+    // Invariants 1–4, 6–7: same assertions over PerLine + Exclusive inputs.
+    // Invariant 5 (Inclusive zero-discount Total = line sum) is not asserted
+    // for PerLine because PerLine + Inclusive is unsupported (§4.6.5).
+    // -----------------------------------------------------------------------
+
+    [Property(MaxTest = 1000)]
+    public Property PerLine_Invariant1_total_accounting_identity()
+        => Prop.ForAll(ArbPerLineInput(), input =>
+        {
+            var r = InvoiceCalculator.Compute(input);
+            return r.Total == r.Subtotal - r.DiscountAmount + r.TaxAmount;
+        });
+
+    [Property(MaxTest = 1000)]
+    public Property PerLine_Invariant2_tax_amount_matches_breakdown_sum()
+        => Prop.ForAll(ArbPerLineInput(), input =>
+        {
+            var r = InvoiceCalculator.Compute(input);
+            return r.TaxAmount == r.TaxBreakdown.Sum(t => t.Amount);
+        });
+
+    [Property(MaxTest = 1000)]
+    public Property PerLine_Invariant3_all_decimals_already_rounded()
+        => Prop.ForAll(ArbPerLineInput(), input =>
+        {
+            var p = Money.GetDecimals(input.CurrencyCode);
+            var r = InvoiceCalculator.Compute(input);
+
+            var allDecimals = r.LineTotals
+                .Concat([r.Subtotal, r.DiscountAmount, r.TaxAmount, r.Total])
+                .Concat(r.TaxBreakdown.Select(t => t.Amount));
+
+            return allDecimals.All(v => Money.Round(v, p) == v);
+        });
+
+    [Fact]
+    public void PerLine_Invariant4_empty_line_items_produce_all_zeros()
+    {
+        foreach (var (currency, disc) in new[]
+        {
+            ("USD", 0m),
+            ("JPY", 10m),
+            ("KWD", 5m),
+        })
+        {
+            var input = new CalculationInput(
+                [],
+                [new TaxRateInput("VAT", 20m)],
+                disc,
+                TaxMode.Exclusive,
+                currency,
+                TaxCalculationMethod.PerLine);
+
+            var r = InvoiceCalculator.Compute(input);
+
+            Assert.Equal(0m, r.Subtotal);
+            Assert.Equal(0m, r.DiscountAmount);
+            Assert.Equal(0m, r.TaxAmount);
+            Assert.Equal(0m, r.Total);
+        }
+    }
+
+    [Property(MaxTest = 1000)]
+    public Property PerLine_Invariant6_zero_tax_rates_no_tax()
+        => Prop.ForAll(
+            Arb.From(
+                from currency in GenCurrency()
+                from lineCount in Gen.Choose(0, 5)
+                from lines in GenLineItem().ListOf(lineCount)
+                from invDisc in GenPercent()
+                select new CalculationInput(lines, [], invDisc, TaxMode.Exclusive, currency,
+                    TaxCalculationMethod.PerLine)),
+            input =>
+            {
+                var r = InvoiceCalculator.Compute(input);
+                var taxableBase = r.Subtotal - r.DiscountAmount;
+                return r.TaxAmount == 0m && r.Total == taxableBase;
+            });
+
+    [Property(MaxTest = 500)]
+    public Property PerLine_Invariant7_calculation_is_pure()
+        => Prop.ForAll(ArbPerLineInput(), input =>
+        {
+            var r1 = InvoiceCalculator.Compute(input);
+            var r2 = InvoiceCalculator.Compute(input);
+            return r1.Subtotal == r2.Subtotal
+                && r1.DiscountAmount == r2.DiscountAmount
+                && r1.TaxAmount == r2.TaxAmount
+                && r1.Total == r2.Total
+                && r1.LineTotals.SequenceEqual(r2.LineTotals)
+                && r1.TaxBreakdown.Select(t => (t.Name, t.Percentage, t.Amount))
+                     .SequenceEqual(r2.TaxBreakdown.Select(t => (t.Name, t.Percentage, t.Amount)));
         });
 
     // -----------------------------------------------------------------------

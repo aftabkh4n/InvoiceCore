@@ -84,12 +84,12 @@ Three lines at £1.67 each, 20% VAT:
 
 | Method | Subtotal | Tax | Total |
 |---|---|---|---|
-| InvoiceCore — `Round(£5.01 × 0.20)` | £5.01 | **£1.00** | £6.01 |
-| HMRC per-line — `3 × Round(£1.67 × 0.20)` = `3 × £0.33` | £5.01 | £0.99 | £6.00 |
+| InvoiceCore `SubtotalFirst` — `Round(£5.01 × 0.20)` | £5.01 | **£1.00** | £6.01 |
+| InvoiceCore `PerLine` — `3 × Round(£1.67 × 0.20)` = `3 × £0.33` | £5.01 | **£0.99** | **£6.00** |
 
-Both methods are permissible under HMRC guidance (VATREC12030). InvoiceCore uses the
-subtotal-first method and does not offer a per-line mode. The maximum divergence is 1 minor
-unit per invoice; it cannot accumulate beyond that.
+Both methods are permissible under HMRC guidance (VATREC12030). InvoiceCore supports both via
+`TaxCalculationMethod` (see SPEC.md §4.6). In `SubtotalFirst` mode the maximum divergence from
+the per-line method is 1 minor unit per invoice.
 
 ### UK 20% — clean cases (no rounding issue)
 
@@ -142,11 +142,11 @@ Two supplies of A$0.05 each, 10% GST:
 
 | Method | Subtotal | GST | Total |
 |---|---|---|---|
-| InvoiceCore — total-invoice: `Round(A$0.10 × 0.10)` | A$0.10 | **A$0.01** | A$0.11 |
-| ATO taxable-supply: `2 × Round(A$0.005)` = `2 × A$0.01` | A$0.10 | A$0.02 | A$0.12 |
+| InvoiceCore `SubtotalFirst` (total-invoice): `Round(A$0.10 × 0.10)` | A$0.10 | **A$0.01** | **A$0.11** |
+| InvoiceCore `PerLine` (taxable-supply): `2 × Round(A$0.05 × 0.10)` = `2 × A$0.01` | A$0.10 | **A$0.02** | **A$0.12** |
 
-InvoiceCore produces A$0.01 less GST than the taxable-supply rule in this case. Both totals
-are ATO-compliant; the legislation explicitly permits either method.
+Both totals are ATO-compliant; GSTA 1999 §9-90 explicitly permits either method. InvoiceCore
+supports both via `TaxCalculationMethod` (see SPEC.md §4.6).
 
 ---
 
@@ -156,9 +156,77 @@ are ATO-compliant; the legislation explicitly permits either method.
 |---|---|---|
 | HMRC standard rule | None | InvoiceCore matches exactly |
 | HMRC optional truncation concession | ±£0.01 at 0.5p midpoints | Concession not implemented; permissive, not required |
-| HMRC per-line vs subtotal-first | ±£0.01 per invoice | Architecture choice; both HMRC-permitted |
+| HMRC per-line vs subtotal-first | ±£0.01 per invoice | Both methods available via `TaxCalculationMethod`; both HMRC-permitted |
 | ATO s9-90 rule | None | InvoiceCore matches exactly |
-| ATO taxable-supply rule vs total-invoice | ±A$0.01 per invoice | InvoiceCore uses total-invoice; both ATO-permitted |
+| ATO taxable-supply rule vs total-invoice | ±A$0.01 per invoice | Both methods available via `TaxCalculationMethod`; both ATO-permitted |
 
 No divergence found where InvoiceCore produces an amount that violates a mandatory rule in
 either jurisdiction. All divergences are against optional or alternative methods.
+
+---
+
+## Per-line rounding residual analysis (PerLine + Inclusive deferral)
+
+This section documents the mathematical finding that led to `TaxCalculationMethod.PerLine` being
+restricted to `TaxMode.Exclusive` in v0.4.0. It is a permanent record, not a workaround note.
+
+### Background
+
+When extracting an exclusive base from an inclusive line price, each line has a per-line rounding
+residual `r_i = lineInclusive_i − lineExclusive_i − lineTax_i`. Exhaustive enumeration confirms
+`r_i ∈ {−1, 0}` for all positive line values and all rates in (0, 100%). `r_i` is never positive.
+When `r_i = −1` for every line in an N-line invoice, the total residual is `−N` minor units.
+
+### Congruence classes
+
+The problematic values follow a strict period determined by the rate:
+
+**10% rate** (1 + R = 11/10; period = 11 minor units): `r_i = −1` when `x mod 11 = 5`
+
+USD cents affected in a single dollar band: 5¢, 16¢, 27¢, 38¢, 49¢, 60¢, 71¢, 82¢, **93¢**, $1.04 …
+
+**20% rate** (1 + R = 6/5; period = 6 minor units): `r_i = −1` when `x mod 6 = 3`
+
+GBP pence affected: 3p, 9p, 15p, 21p, 27p, 33p, 39p, 45p, 51p, 57p, 63p, 69p, 75p, 81p, 87p, 93p, **99p**, £3.99, £9.99 …
+
+These are not exotic edge cases. £3.99 is a canonical UK retail price point at 20% VAT.
+
+### Verified worst-case: 7 × £3.99 GBP at 20% VAT
+
+```
+Per-line extraction:
+  lineExclusive_i = Round(3.99 / 1.20, 2) = Round(3.325, 2) = 3.33
+  lineTax_i       = Round(3.33 × 0.20, 2) = Round(0.666, 2) = 0.67
+  r_i             = 3.99 − 3.33 − 0.67 = −0.01  (−1 minor unit per line)
+
+Aggregated over 7 lines:
+  rawSubtotal = 7 × 3.99 = 27.93
+  Subtotal    = 7 × 3.33 = 23.31
+  TaxAmount   = 7 × 0.67 =  4.69
+  Total       = 23.31 + 4.69 = 28.00
+  residual    = 27.93 − 28.00 = −0.07  (7 minor units)
+```
+
+The §4.4 reconciliation rule is designed for ±1 minor unit. Applying it to −0.07 would
+produce `TaxBreakdown[20%].Amount = £4.62`, implying a 19.82% effective rate on the £23.31
+net — a persistent distortion in every VAT filing report, not a rounding artefact.
+
+### Verified cases across currencies
+
+| Currency | Rate | Line value | r_i | N=1 residual | N=3 residual | N=7 residual |
+|---|---|---|---|---|---|---|
+| USD p=2 | 10% | $0.93 (93 mod 11 = 5) | −1¢ | **−1¢** | **−3¢** | **−7¢** |
+| JPY p=0 | 10% | ¥1,105 (1105 mod 11 = 5) | −1¥ | **−1¥** | **−3¥** | **−7¥** |
+| KWD p=3 | 5% | KWD 0.997 (997 mod 21 = 10) | −1‰ | **−1‰** | **−3‰** | **−7‰** |
+| GBP p=2 | 20% | £3.99 (399 mod 6 = 3) | −1p | **−1p** | **−3p** | **−7p** |
+
+All values were verified by the arithmetic verification script and are asserted as tests
+in `tests/InvoiceCore.Tests/Calculation/PerLineCalculationTests.cs`
+(`PerLine_residual_congruence_10pct` and `PerLine_residual_congruence_20pct`).
+
+### Consequence for the design
+
+A correct `PerLine + Inclusive` implementation requires a multi-unit reconciliation mechanism
+that distributes the residual without distorting the filing-visible `TaxBreakdown`. That work
+is scoped to v0.5.0. Until then, the constructor rejects `PerLine + Inclusive` with
+`NotSupportedException`.

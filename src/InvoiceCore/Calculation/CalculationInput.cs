@@ -18,4 +18,5 @@ internal sealed record CalculationInput(
     IReadOnlyList<TaxRateInput> TaxRates,
     decimal DiscountPercent,
     TaxMode TaxMode,
-    string CurrencyCode);
+    string CurrencyCode,
+    TaxCalculationMethod TaxCalculationMethod = TaxCalculationMethod.SubtotalFirst);
