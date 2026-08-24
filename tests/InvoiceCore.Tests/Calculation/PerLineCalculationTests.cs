@@ -116,6 +116,109 @@ public sealed class PerLineCalculationTests
         (inv.Subtotal - inv.DiscountAmount + inv.TaxAmount).Should().Be(inv.Total); // invariant 1
     }
 
+    // -----------------------------------------------------------------------
+    // Additional M20 kills across all three currency precisions.
+    //
+    // These demonstrate that SUM(lineDiscount_i) diverges from
+    // Round(Subtotal × pct / 100, p) regardless of decimal precision,
+    // and that the divergence can exceed 1 minor unit (USD 7-line case).
+    //
+    // Hand-calculated expected values verified by arithmetic script before writing.
+    // -----------------------------------------------------------------------
+
+    [Fact]
+    public void PerLine_3lines_midpoint_discount_JPY()
+    {
+        // JPY: p=0 — rounding to the nearest yen.
+        // 3 lines × ¥10, 5% invoice discount.
+        //
+        // Per-line:       lineDiscount_i = Round(10 × 5/100, 0) = Round(0.5, 0) = ¥1 (AwayFromZero)
+        //                 DiscountAmount = 3 × ¥1 = ¥3
+        // SubtotalFirst:  Round(30 × 5/100, 0) = Round(1.5, 0) = ¥2  ← M20 would produce this
+        // Divergence:     1 minor unit
+        //
+        // With 10% tax:   lineTaxable_i = ¥9, lineTax_i = Round(9×0.10, 0) = Round(0.9,0) = ¥1
+        //                 TaxAmount = ¥3, Total = 30 − 3 + 3 = ¥30
+        var inv = new Invoice(
+            lineItems: [
+                new LineItem { Description = "A", Quantity = 1m, UnitPrice = 10m },
+                new LineItem { Description = "B", Quantity = 1m, UnitPrice = 10m },
+                new LineItem { Description = "C", Quantity = 1m, UnitPrice = 10m },
+            ],
+            taxRates: [new TaxRate { Name = "Tax", Percentage = 10m }],
+            invoiceNumber: "JPY-DISC",
+            issuedDate: IssueDate,
+            dueDate: DueDate,
+            customer: Customer,
+            currencyCode: "JPY",
+            discountPercent: 5m,
+            taxCalculationMethod: TaxCalculationMethod.PerLine);
+
+        inv.Subtotal.Should().Be(30m);
+        inv.DiscountAmount.Should().Be(3m);    // kills M20 (SubtotalFirst / M20 gives ¥2)
+        inv.TaxAmount.Should().Be(3m);
+        inv.Total.Should().Be(30m);
+        (inv.Subtotal - inv.DiscountAmount + inv.TaxAmount).Should().Be(inv.Total);
+    }
+
+    [Fact]
+    public void PerLine_3lines_midpoint_discount_KWD()
+    {
+        // KWD: p=3 — rounding to the nearest fils (1/1000 KWD).
+        // 3 lines × KWD 0.333, 10% invoice discount.
+        //
+        // Per-line:       lineDiscount_i = Round(0.333 × 10/100, 3) = Round(0.0333, 3) = 0.033
+        //                 DiscountAmount = 3 × 0.033 = 0.099
+        // SubtotalFirst:  Round(0.999 × 10/100, 3) = Round(0.0999, 3) = 0.100  ← M20 would produce this
+        // Divergence:     1 minor unit (1 fil)
+        //
+        // With 5% tax:    lineTaxable_i = 0.300, lineTax_i = Round(0.300 × 0.05, 3) = 0.015
+        //                 TaxAmount = 0.045, Total = 0.999 − 0.099 + 0.045 = 0.945
+        var inv = new Invoice(
+            lineItems: [
+                new LineItem { Description = "A", Quantity = 1m, UnitPrice = 0.333m },
+                new LineItem { Description = "B", Quantity = 1m, UnitPrice = 0.333m },
+                new LineItem { Description = "C", Quantity = 1m, UnitPrice = 0.333m },
+            ],
+            taxRates: [new TaxRate { Name = "Tax", Percentage = 5m }],
+            invoiceNumber: "KWD-DISC",
+            issuedDate: IssueDate,
+            dueDate: DueDate,
+            customer: Customer,
+            currencyCode: "KWD",
+            discountPercent: 10m,
+            taxCalculationMethod: TaxCalculationMethod.PerLine);
+
+        inv.Subtotal.Should().Be(0.999m);
+        inv.DiscountAmount.Should().Be(0.099m);    // kills M20 (SubtotalFirst / M20 gives 0.100)
+        inv.TaxAmount.Should().Be(0.045m);
+        inv.Total.Should().Be(0.945m);
+        (inv.Subtotal - inv.DiscountAmount + inv.TaxAmount).Should().Be(inv.Total);
+    }
+
+    [Fact]
+    public void PerLine_7lines_33pct_discount_10pct_tax_USD_divergence_is_2_minor_units()
+    {
+        // USD: p=2 — 7 lines show the divergence can exceed 1 minor unit.
+        // 7 lines × $1.00, 33.33% invoice discount.
+        //
+        // Per-line:       lineDiscount_i = Round(1.00 × 33.33/100, 2) = Round(0.3333, 2) = $0.33
+        //                 DiscountAmount = 7 × $0.33 = $2.31
+        // SubtotalFirst:  Round(7.00 × 33.33/100, 2) = Round(2.3331, 2) = $2.33  ← M20 would produce this
+        // Divergence:     2 minor units ($0.02)
+        //
+        // With 10% tax:   lineTaxable_i = $0.67, lineTax_i = Round(0.67 × 0.10, 2) = $0.07
+        //                 TaxAmount = 7 × $0.07 = $0.49
+        //                 Total = 7.00 − 2.31 + 0.49 = $5.18
+        var inv = BuildPerLine("USD", [1m, 1m, 1m, 1m, 1m, 1m, 1m], 10m, invoiceDiscountPct: 33.33m);
+
+        inv.Subtotal.Should().Be(7.00m);
+        inv.DiscountAmount.Should().Be(2.31m);     // kills M20 (SubtotalFirst / M20 gives $2.33)
+        inv.TaxAmount.Should().Be(0.49m);
+        inv.Total.Should().Be(5.18m);
+        (inv.Subtotal - inv.DiscountAmount + inv.TaxAmount).Should().Be(inv.Total);
+    }
+
     [Fact]
     public void PerLine_TaxCalculationMethod_property_is_PerLine()
     {
