@@ -36,7 +36,8 @@ public sealed class Invoice
     /// </param>
     /// <exception cref="NotSupportedException">
     /// Thrown when <paramref name="taxCalculationMethod"/> is <see cref="TaxCalculationMethod.PerLine"/>
-    /// and <paramref name="taxMode"/> is <see cref="TaxMode.Inclusive"/>. See SPEC.md §4.6.5.
+    /// and <paramref name="taxMode"/> is <see cref="TaxMode.Inclusive"/>. See
+    /// docs/TAX-CONFORMANCE.md (per-line rounding residual analysis) for the mathematical reason.
     /// </exception>
     public Invoice(
         IReadOnlyList<LineItem> lineItems,
@@ -57,7 +58,7 @@ public sealed class Invoice
         if (taxCalculationMethod == TaxCalculationMethod.PerLine && taxMode == TaxMode.Inclusive)
             throw new NotSupportedException(
                 "TaxCalculationMethod.PerLine is not supported with TaxMode.Inclusive in this version. " +
-                "See SPEC.md §4.6.5 for the mathematical reason this combination is deferred.");
+                "See docs/TAX-CONFORMANCE.md (per-line rounding residual analysis) for the mathematical reason.");
 
         Id = id ?? Guid.NewGuid();
         InvoiceNumber = invoiceNumber;

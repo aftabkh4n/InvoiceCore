@@ -88,7 +88,7 @@ Three lines at £1.67 each, 20% VAT:
 | InvoiceCore `PerLine` — `3 × Round(£1.67 × 0.20)` = `3 × £0.33` | £5.01 | **£0.99** | **£6.00** |
 
 Both methods are permissible under HMRC guidance (VATREC12030). InvoiceCore supports both via
-`TaxCalculationMethod` (see SPEC.md §4.6). In `SubtotalFirst` mode the maximum divergence from
+`TaxCalculationMethod` (see the README). In `SubtotalFirst` mode the maximum divergence from
 the per-line method is 1 minor unit per invoice.
 
 ### UK 20% — clean cases (no rounding issue)
@@ -146,7 +146,7 @@ Two supplies of A$0.05 each, 10% GST:
 | InvoiceCore `PerLine` (taxable-supply): `2 × Round(A$0.05 × 0.10)` = `2 × A$0.01` | A$0.10 | **A$0.02** | **A$0.12** |
 
 Both totals are ATO-compliant; GSTA 1999 §9-90 explicitly permits either method. InvoiceCore
-supports both via `TaxCalculationMethod` (see SPEC.md §4.6).
+supports both via `TaxCalculationMethod` (see the README).
 
 ---
 

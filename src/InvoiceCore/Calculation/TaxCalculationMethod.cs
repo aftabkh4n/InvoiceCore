@@ -18,7 +18,8 @@ public enum TaxCalculationMethod
     /// <remarks>
     /// Supported with <see cref="TaxMode.Exclusive"/> only. Combining <see cref="PerLine"/> with
     /// <see cref="TaxMode.Inclusive"/> throws <see cref="NotSupportedException"/> at invoice
-    /// construction. See SPEC.md §4.6.5 for the mathematical reason this combination is deferred.
+    /// construction. See docs/TAX-CONFORMANCE.md (per-line rounding residual analysis) for the
+    /// mathematical reason this combination is deferred.
     /// </remarks>
     PerLine = 1,
 }

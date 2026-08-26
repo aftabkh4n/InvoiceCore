@@ -1,10 +1,10 @@
 namespace InvoiceCore;
 
 /// <summary>
-/// Pure calculation engine. No I/O, no clock, no mutable state. Implements the
-/// five-step pipeline from SPEC.md §4.3 and the inclusive-mode reconciliation
-/// rule from §4.4. Supports both <see cref="TaxCalculationMethod.SubtotalFirst"/>
-/// and <see cref="TaxCalculationMethod.PerLine"/> (§4.6).
+/// Pure calculation engine. No I/O, no clock, no mutable state. Implements a
+/// five-step pipeline: line totals, subtotal normalisation, invoice discount,
+/// per-rate tax, and inclusive-mode reconciliation. Supports both
+/// <see cref="TaxCalculationMethod.SubtotalFirst"/> and <see cref="TaxCalculationMethod.PerLine"/>.
 /// </summary>
 internal static class InvoiceCalculator
 {

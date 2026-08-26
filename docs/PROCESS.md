@@ -140,8 +140,6 @@ knowing the implementation detail.
 
 ## What was not built
 
-From SPEC.md §2:
-
 - Payments, partial payments, payment allocation
 - Credit notes (negative quantities rejected)
 - Recurring invoices
