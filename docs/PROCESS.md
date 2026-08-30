@@ -132,10 +132,15 @@ fixed invoice (deterministic ID, known totals), asserted with
 option changes that property-level assertions miss.
 
 M16 was re-run against the current suite (v0.4.0): kills **10**
-(both golden snapshots, both culture-swap invariant tests, JPY/KWD precision
-tests, trailing-zeros, and the currency-precision test). The single golden
-snapshot predicted in the original finding was the floor; the string-money
-precision tests added in Phase 3 supply the additional kills.
+(`ExportToJson_golden_snapshot`, `ExportToJson_StringNoNulls_golden_snapshot`,
+`ExportToJson_StringWithNulls_golden_snapshot`, both culture-swap invariant tests
+(`ExportToJson_String_uses_invariant_culture` tr-TR and de-DE),
+`ExportToJson_String_JPY_zero_decimal_places`, `ExportToJson_String_KWD_three_decimal_places`,
+`ExportToJson_String_trailing_zeros_preserved`,
+`ExportToJson_String_uses_currency_precision_not_generic_format`, and
+`ExportToJson_dates_are_iso8601`). The single golden snapshot predicted in the
+original finding was the floor; the string-money precision tests added in Phase 3
+supply the additional kills.
 
 ---
 
