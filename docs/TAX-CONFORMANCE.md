@@ -173,8 +173,10 @@ restricted to `TaxMode.Exclusive` in v0.4.0. It is a permanent record, not a wor
 ### Background
 
 When extracting an exclusive base from an inclusive line price, each line has a per-line rounding
-residual `r_i = lineInclusive_i − lineExclusive_i − lineTax_i`. Exhaustive enumeration confirms
-`r_i ∈ {−1, 0}` for all positive line values and all rates in (0, 100%). `r_i` is never positive.
+residual `r_i = lineInclusive_i − lineExclusive_i − lineTax_i`. Enumeration over all line values
+in [1, 110] minor units and rates of 5%, 10%, and 20% confirms `r_i ∈ {−1, 0}` for all cases
+tested. `r_i` is never positive in any case found. The result is consistent with the algebraic
+structure of AwayFromZero rounding but has not been proved for all rates in (0, 100%).
 When `r_i = −1` for every line in an N-line invoice, the total residual is `−N` minor units.
 
 ### Congruence classes

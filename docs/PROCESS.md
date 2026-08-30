@@ -8,16 +8,20 @@ the intended process.
 
 ## Phases
 
-| Phase | Scope | Commits |
-|-------|-------|---------|
-| 0 | Scaffold: solution layout, CI, empty projects | 1 |
-| 1 | Money engine: ISO-4217 precision, pipeline, property tests | 2 |
-| 2 | Public models, status machine, validation | 1 |
-| 3 | Service, CSV/JSON export, summary, presentation | 1 |
-| 4 | Docs, packaging, release workflow | current |
+| Phase | Scope | Released |
+|-------|-------|----------|
+| 0 | Scaffold: solution layout, CI, empty projects | — |
+| 1 | Money engine: ISO-4217 precision, pipeline, property tests | — |
+| 2 | Public models, status machine, validation | — |
+| 3 | Service, CSV/JSON export, summary, presentation | — |
+| 4 | Docs, packaging, release workflow | 0.1.0, 0.1.1 |
+| 5 | net10.0 target | 0.2.0 |
+| 6 | JSON export schema: MoneyFormat.String default, IncludeNulls flag, 4-context source-gen | 0.3.0 |
+| 7 | TaxCalculationMethod.PerLine, residual analysis, conformance regression tests | 0.4.0 |
+| 8 | Fix: exception message pointed at unpublished document | pending (0.4.1) |
 
-Each phase ended with a mutation run before the next phase started. No new
-code was written against a test gap that a mutation found.
+Phases 0–4 each ended with a mutation run before the next phase started.
+No new code was written against a test gap that a mutation found.
 
 ---
 
@@ -41,26 +45,35 @@ Mutations M1-M7 targeted the five-step calculation pipeline and the `Money`
 rounding helper.
 
 **M4: remove `Money.Round` from line totals (step 1)**
-Kills: **2** (S08, S09).
+Initial kills: **2** (S08, S09).
 
-The existing golden scenarios did not include a line item whose
-`Quantity × UnitPrice` produced a sub-minor-unit result in USD (2 decimal
-places). S08 and S09 covered it for USD; the gap was that no scenario tested
-it for JPY (0 dp) or KWD (3 dp) at the line level. The two kills were enough
-to confirm the rounding site was guarded, so no new scenario was added,
-but this is noted as a coverage limit.
+S08 and S09 covered the USD (2 dp) case. No existing scenario tested a
+line-level sub-minor-unit result for JPY (0 dp) or KWD (3 dp), which are
+the currencies where rounding at the line level can round to a different
+integer. The initial kill count of 2 was below the coverage threshold for
+a cross-currency rounding site, so S29, S31, and S32 were added specifically
+to close it. After those additions M4 kills **5**: S08, S09, S29, S31, S32.
+
+The finding is noted in the record because no existing golden scenario had a
+line item whose gross exceeded the currency's minor-unit precision — all
+prior tests happened to use prices that were already rounded to currency
+precision before multiplication.
 
 **M6: remove `Money.Round` from `DiscountAmount` (step 3)**
-Initial kills: **2** (S30, Invariant3).
+Initial kills: **1** (Invariant3 only).
 
-S30 tested a USD invoice-discount midpoint (0.505 → 0.51). `Invariant3`
-(property test: all stored decimals are already rounded) independently caught
-it. The kill count was 2.
+`Invariant3` (property test: all stored decimals are already rounded) caught
+the mutation independently, but no scenario-level test existed for a
+discount midpoint. A single property-test kill against a cross-currency
+rounding site was below threshold, making this a hole.
 
-S33 and S34 were added at Phase 2 to complete the 3-currency discount
-midpoint coverage: JPY (500.5 → 501, AwayFromZero; ToEven gives 500) and KWD
-(5.0005 → 5.001; ToEven gives 5.000). After those additions M6 kills **4**:
-S30, S33, S34, Invariant3.
+S30 was added to cover the USD midpoint (0.505 → 0.51, AwayFromZero). After
+S30 M6 kills **2**: S30, Invariant3.
+
+S33 and S34 were then added to complete the 3-currency coverage: JPY
+(500.5 → 501, AwayFromZero; ToEven gives 500) and KWD (5.0005 → 5.001;
+ToEven gives 5.000). After those additions M6 kills **4**: S30, S33, S34,
+Invariant3.
 
 ---
 
@@ -109,7 +122,48 @@ explicitly but does not assert any output shape.
 Fix: added `ExportToJson_golden_snapshot`, a committed expected string for a
 fixed invoice (deterministic ID, known totals), asserted with
 `Should().Be(Expected)`. This catches field renames, additions, and serialiser
-option changes that property-level assertions miss. M16 would now kill 1.
+option changes that property-level assertions miss.
+
+M16 was re-run against the current suite (v0.4.0): kills **10**
+(both golden snapshots, both culture-swap invariant tests, JPY/KWD precision
+tests, trailing-zeros, and the currency-precision test). The single golden
+snapshot predicted in the original finding was the floor; the string-money
+precision tests added in Phase 3 supply the additional kills.
+
+---
+
+## Release pipeline finding
+
+This failure belongs in the record because it is a different failure class
+from the mutation findings: no test could have caught it, and no local run
+surfaces it.
+
+**Symptom.** Tagging `v0.3.0` while `Directory.Build.props` still read
+`<Version>0.2.0</Version>` caused `dotnet pack` to produce
+`InvoiceCore.0.2.0.nupkg`. NuGet returned HTTP 409 (version already exists).
+The workflow step used `--skip-duplicate`, so the 409 was swallowed and every
+step reported success. The Actions run showed green; nothing was published.
+
+**Root cause.** The version in the props file and the git tag were out of
+sync. The release workflow had no check for this. `--skip-duplicate` is
+correct for idempotent re-runs but masked a real error here.
+
+**Fix.** A "Verify tag matches project version" step was added to
+`release.yml` before the `pack` step:
+
+```bash
+tag="${GITHUB_REF_NAME#v}"
+ver=$(grep -oPm1 '(?<=<Version>)[^<]+' Directory.Build.props)
+if [ "$tag" != "$ver" ]; then
+  echo "Tag $tag does not match Version $ver in Directory.Build.props"
+  exit 1
+fi
+```
+
+This runs before `dotnet pack`, so a mismatch aborts the workflow before
+anything is packed or pushed. Verified at v0.3.0 re-tag and again at
+v0.4.0: the step logged `Tag 0.4.0 matches project version 0.4.0` and
+continued.
 
 ---
 
@@ -120,11 +174,16 @@ method. `TreatWarningsAsErrors=true` and code review catch any drift. An
 alternative was a custom `decimal`-wrapping struct; rejected because it adds
 allocation overhead and complexity for no observable benefit at this scale.
 
-**Two source-gen JSON contexts.** `System.Text.Json` source generation bakes
-`WriteIndented` at compile time. Two contexts (`InvoiceJsonContext` and
-`InvoiceJsonContextIndented`) allow AOT-safe indented output without using the
-`JsonSerializerOptions` overload that triggers IL2026/IL3050 under
-`IsAotCompatible=true` + `TreatWarningsAsErrors=true`.
+**Four source-gen JSON contexts.** The export layer has two money modes
+(`Number` and `String`) and two null-handling modes (`IncludeNulls` and
+`WhenWritingNull`), giving four contexts: `InvoiceJsonContext`,
+`InvoiceJsonContextNoNulls`, `InvoiceStringJsonContext`, and
+`InvoiceStringJsonContextWithNulls`. An earlier design baked `WriteIndented`
+as a fifth axis, producing eight contexts; that packed to 232 KB and was cut
+in v0.3.0 (commit `1d424ba`). Indented output is now handled by a
+`SerializeIndented<T>(T, JsonTypeInfo<T>)` helper that writes to a
+`Utf8JsonWriter` with `Indented = true`, keeping the context count at four
+and the package under 200 KB.
 
 **`InvoiceStatus.Overdue` is derived, never stored.** Storing it would require
 a background job or a time-dependent query. `GetEffectiveStatus(TimeProvider?)`
@@ -144,7 +203,7 @@ knowing the implementation detail.
 - Credit notes (negative quantities rejected)
 - Recurring invoices
 - Withholding tax, reverse charge, compound tax
-- Per-line tax rates
+- Mixed-rate line items (different VAT rates on lines of the same invoice)
 - Currency conversion
 - Localisation of labels
 
