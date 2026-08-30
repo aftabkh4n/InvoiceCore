@@ -45,14 +45,21 @@ Mutations M1-M7 targeted the five-step calculation pipeline and the `Money`
 rounding helper.
 
 **M4: remove `Money.Round` from line totals (step 1)**
-Initial kills: **2** (S08, S09).
+Initial kills: **2** (`RoundingTests.Quantity_0_333_rounds_line_total_correctly`,
+`PropertyTests.Invariant3_all_decimals_already_rounded`).
 
-S08 and S09 covered the USD (2 dp) case. No existing scenario tested a
-line-level sub-minor-unit result for JPY (0 dp) or KWD (3 dp), which are
-the currencies where rounding at the line level can round to a different
+`Quantity_0_333` covered the USD (2 dp) case. No existing golden scenario
+tested a line-level sub-minor-unit result for JPY (0 dp) or KWD (3 dp), which
+are the currencies where rounding at the line level can round to a different
 integer. The initial kill count of 2 was below the coverage threshold for
 a cross-currency rounding site, so S29, S31, and S32 were added specifically
-to close it. After those additions M4 kills **5**: S08, S09, S29, S31, S32.
+to close it. After those additions M4 kills **5**: `Quantity_0_333_rounds_line_total_correctly`,
+`Invariant3_all_decimals_already_rounded`, S29 (USD line-gross midpoint 3.025),
+S31 (USD line-gross sub-precision 0.333), S32 (KWD line-gross sub-precision 0.3333).
+
+M4 was re-run against the current suite (v0.4.0): kills **6**; adds
+`PropertyTests.PerLine_Invariant3_all_decimals_already_rounded` (Phase 7 property
+test that also exercises unrounded line totals via the PerLine path).
 
 The finding is noted in the record because no existing golden scenario had a
 line item whose gross exceeded the currency's minor-unit precision — all
