@@ -108,6 +108,23 @@ public sealed class JsonExportTests
         using var doc = JsonDocument.Parse(json);
         doc.RootElement.ValueKind.Should().Be(JsonValueKind.Array);
         doc.RootElement.GetArrayLength().Should().Be(2);
+        var first = doc.RootElement[0];
+        first.GetProperty("id").GetGuid().Should().Be(inv.Id);
+        first.GetProperty("total").GetString().Should().Be("120.00");
+        first.GetProperty("currencyCode").GetString().Should().Be("USD");
+    }
+
+    // Array overload, numeric money path: elements carry the input invoice's data.
+    [Fact]
+    public void ExportToJson_array_number_format_preserves_elements()
+    {
+        var inv = SimpleInvoice();
+        var json = Svc().ExportToJson([inv], new JsonExportOptions { MoneyFormat = MoneyFormat.Number });
+        using var doc = JsonDocument.Parse(json);
+        var first = doc.RootElement[0];
+        first.GetProperty("id").GetGuid().Should().Be(inv.Id);
+        first.GetProperty("total").GetDecimal().Should().Be(120m);
+        first.GetProperty("currencyCode").GetString().Should().Be("USD");
     }
 
     // Empty array overload → empty JSON array.
