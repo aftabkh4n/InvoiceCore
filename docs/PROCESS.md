@@ -86,7 +86,7 @@ Invariant3.
 
 ## Phase 3 mutation findings
 
-Mutations M12-M16 targeted the export layer.
+Mutations M12-M17 targeted the export layer.
 
 **M12: replace `CultureInfo.InvariantCulture` with `CultureInfo.CurrentCulture`
 in CSV decimal formatting**
@@ -141,6 +141,21 @@ M16 was re-run against the current suite (v0.4.0): kills **10**
 `ExportToJson_dates_are_iso8601`). The single golden snapshot predicted in the
 original finding was the floor; the string-money precision tests added in Phase 3
 supply the additional kills.
+
+**M17: replace `invoices.Select(InvoiceDto.From)` with
+`invoices.Select(_ => new InvoiceDto())` in the numeric-money
+`ExportToJson(IEnumerable<Invoice>)` path**
+
+Initial result: **0 kills**. `ExportToJson_array_returns_json_array` checked only
+`ValueKind` and `GetArrayLength()`, and it ran the default `MoneyFormat.String`
+path, so the numeric array path had no content assertion at all. An array of
+empty DTOs of the right length passed.
+
+Fix: `ExportToJson_array_returns_json_array` now asserts element 0's `id`,
+`total` and `currencyCode` match the input, and
+`ExportToJson_array_number_format_preserves_elements` does the same with
+`MoneyFormat.Number`. After the fix M17 kills **1**
+(`ExportToJson_array_number_format_preserves_elements`).
 
 ---
 

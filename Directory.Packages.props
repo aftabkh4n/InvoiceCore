@@ -5,7 +5,7 @@
 
   <!-- Build tooling: not shipped in the nupkg (PrivateAssets="All" in Directory.Build.props) -->
   <ItemGroup>
-    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="10.0.403" />
   </ItemGroup>
 
   <!-- Test dependencies -->
